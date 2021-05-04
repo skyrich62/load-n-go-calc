@@ -8,4 +8,4 @@ calc: main.cc
 	$(CXX) $(CXXFLAGS) main.cc -o calc
 
 clean:
-	rm -rf main
+	rm -rf calc
