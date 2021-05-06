@@ -69,10 +69,13 @@ struct term;
 
 struct integer : plus< digit > { };
 
+struct function_call :
+    seq< identifier, wss, LPAREN, wss, expression, wss, RPAREN > { };
+
 struct assignment : seq< identifier, wss, ASSIGN, wss, expression > { };
 
 struct expression : seq<
-                      opt< unary_adding_operator >,
+                      opt< unary_adding_operator, wss >,
                       list< term, binary_adding_operator, ws >
                     > { };
 
@@ -80,7 +83,8 @@ struct term : list< factor, multiplying_operator, ws > { };
 
 struct parenthesized_expr : seq< LPAREN, wss, expression, wss, RPAREN > { };
 
-struct factor : sor< integer, identifier, parenthesized_expr > { };
+struct factor :
+    sor< function_call, integer, identifier, parenthesized_expr > { };
 
 
 struct assignment_statement : assignment { };
@@ -116,7 +120,8 @@ using node_kind =
         multiplication,
         division,
         unary_minus,
-        unary_plus
+        unary_plus,
+        function_call
     >;
 
 struct node : public tao::pegtl::parse_tree::basic_node<node>
@@ -206,6 +211,7 @@ struct remove_content : parse_tree::apply<remove_content>
     template< typename... States>
     static void transform( Ptr &n, States&&... st)
     {
+        try_type<function_call>(n)        ||
         try_type<assignment_statement>(n) ||
         try_type<expression_statement>(n) ||
         try_type<addition>(n)             ||
@@ -232,7 +238,8 @@ using selector = parse_tree::selector<
     multiplication,
     division,
     unary_plus,
-    unary_minus
+    unary_minus,
+    function_call
   >,
   rearrange_expr::on<
     factor,
@@ -264,6 +271,7 @@ public:
     int visit(const node &, const unary_plus &);
     int visit(const node &, const symbol &);
     int visit(const node &, const number &);
+    int visit(const node &, const function_call &);
 
 private:
     std::map<std::string, int> _symbol_table;
@@ -297,6 +305,7 @@ evaluator::visit(const node &n, const node_kind &kind)
         [this, &n](const unary_plus &up)           { return this->visit(n, up); },
         [this, &n](const symbol &sym)              { return this->visit(n, sym); },
         [this, &n](const number  &i)               { return this->visit(n, i); },
+        [this, &n](const function_call  &f)        { return this->visit(n, f); },
         [](auto arg)                           { return 0;}
       }, kind);
 }
@@ -364,7 +373,20 @@ evaluator::visit(const node &n, const addition &)
 int
 evaluator::visit(const node &n, const subtraction &)
 {
-    return visit(*n.children[0]) / visit(*n.children[1]);
+    return visit(*n.children[0]) - visit(*n.children[1]);
+}
+
+
+int
+evaluator::visit(const node &n, const function_call &f)
+{
+    auto func = std::get<symbol>(n.children[0]->kind)._value;
+    if (func != "abs") {
+        std::cerr << "Unknown function: " << func << " -- ignored.\n";
+        return 0;
+    }
+    auto operand = visit(*n.children[1]);
+    return abs(operand);
 }
 
 int main(int argc, char *argv[])
