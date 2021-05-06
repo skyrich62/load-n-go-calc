@@ -35,31 +35,70 @@
 
 using namespace TAO_PEGTL_NAMESPACE;
 
+/// ws <- space
 struct ws    : space { };
+
+/// wsp <- ws+
 struct wsp   : plus< ws > { };
+
+/// wss <- ws*
 struct wss   : star< ws > { };
 
+/// EQUAL <- '='
 struct EQUAL : one< '=' > { };
+
+/// COLON <- ':'
 struct COLON : one< ':' > { };
+
+/// ASSIGN <- COLON EQUAL
 struct ASSIGN : seq< COLON, EQUAL > { };
+
+/// PLUS <- '+'
 struct PLUS   : one< '+' > { };
+
+/// MINUS <- '-'
 struct MINUS  : one< '-' > { };
+
+/// STAR <- '*'
 struct STAR   : one< '*' > { };
+
+/// SLASH <- '/'
 struct SLASH  : one< '/' > { };
+
+/// LPAREN <- '('
 struct LPAREN : one< '(' > { };
+
+/// RPAREN <- ')'
 struct RPAREN : one< ')' > { };
+
+/// SEMI <- ';'
 struct SEMI   : one< ';' > { };
 
+/// unary_plus <- PLUS
 struct unary_plus : PLUS { };
+
+/// unary_minus <- MINUS
 struct unary_minus: MINUS { };
 
+/// addition <- PLUS
 struct addition : PLUS { };
+
+/// subtraction <- MINUS
 struct subtraction : MINUS { };
+
+/// multiplication <- STAR
 struct multiplication : STAR { };
+
+/// division <- SLASH
 struct division : SLASH { };
 
+/// unary_adding_operator <- unary_plus / unary_minus
 struct unary_adding_operator : sor< unary_plus, unary_minus > { };
+
+/// binary_adding_operator <- addition / subtraction
 struct binary_adding_operator : sor< addition, subtraction > { };
+
+/// multiplying_operator <- multiplucation / division
 struct multiplying_operator : sor< multiplication, division > { };
 
 
@@ -67,63 +106,93 @@ struct expression;
 struct factor;
 struct term;
 
+
+/// integer <- digit+
 struct integer : plus< digit > { };
 
+
+/// function_call <- identifier LPAREN expression RPAREN
 struct function_call :
     seq< identifier, wss, LPAREN, wss, expression, wss, RPAREN > { };
 
+/// assignment <- identifier ASSIGN expression
 struct assignment : seq< identifier, wss, ASSIGN, wss, expression > { };
 
+/// expression <- unary_adding_operator? term (binary_adding_operator term)*
 struct expression : seq<
                       opt< unary_adding_operator, wss >,
                       list< term, binary_adding_operator, ws >
                     > { };
 
+/// term <- factor (multiplying_operator factor)*
 struct term : list< factor, multiplying_operator, ws > { };
 
+/// parenthezised_expr <- LPAREN expression RPAREN
 struct parenthesized_expr : seq< LPAREN, wss, expression, wss, RPAREN > { };
 
+/// factor <- function_call / integer / identifier / parenthesized_expr
 struct factor :
     sor< function_call, integer, identifier, parenthesized_expr > { };
 
 
+/// assignment_statement <- assignment
 struct assignment_statement : assignment { };
+
+/// expression_statement < expression
 struct expression_statement : seq< expression > { };
 
+/// statement <- (assignment_statement / expression_statement) SEMI
 struct statement : seq< sor< assignment_statement, expression_statement >, wss, SEMI > { };
 
+/// grammar <- statement+ eolf
 struct grammar : seq< wss, plus< statement, wss >, eolf > { };
 
+
+/// Useful for using lambda expressions in function overloads for use with
+/// std::visit.  See the example code here:
+///     https://en.cppreference.com/w/cpp/utility/variant/visit
 template< class... Ts > struct overloaded : Ts... { using Ts::operator()...; };
 template< class... Ts > overloaded(Ts...) -> overloaded<Ts...>;
 
 
+/// Define the members of the variant in the parse tree nodes.
+
+/// A node which holds a number, (integer).  For now, this only holds the
+/// value, but can be modified to hold addtional information, ( e.g. how
+/// the number was parsed, "011" vs "9" for instance).
 struct number
 {
     int _value;
 };
 
+/// A node which holds a symbol.  Again, for now, this is only the name
+/// of the symbol, but other information could be placed here.
 struct symbol
 {
     std::string _value;
 };
 
+/// The variant which will hold information specific to the type of parse
+/// tree node.
 using node_kind =
     std::variant <
-        std::monostate,
-        assignment_statement,
-        expression_statement,
-        number,
-        symbol,
-        subtraction,
-        addition,
-        multiplication,
-        division,
-        unary_minus,
-        unary_plus,
-        function_call
+        std::monostate,           ///< Placeholder.
+        assignment_statement,     ///< This node is an assignment statement. ( x:= 5; )
+        expression_statement,     ///< This node is an expression statement. ( x; )
+        number,                   ///< This node is a numeric literal.       ( 42 )
+        symbol,                   ///< This node is a symbol.                ( x )
+        subtraction,              ///< This node is a subtraction operation. ( x - 2 )
+        addition,                 ///< This node is an addition operation.   ( x + 5 )
+        multiplication,           ///< This is a multiplication operation.   ( x * y )
+        division,                 ///< This is a division operation.         ( x / y )
+        unary_minus,              ///< Unary minus                           ( -x )
+        unary_plus,               ///< Unary plus                            ( +x )
+        function_call             ///< Function call                         ( abs(x) )
     >;
 
+
+/// Parse tree node is the same as a PEGTL basic node, but adds
+/// the variant described above to differentiate the types of nodes.
 struct node : public tao::pegtl::parse_tree::basic_node<node>
 {
     node() = default;
@@ -140,6 +209,8 @@ struct node : public tao::pegtl::parse_tree::basic_node<node>
 
 using Ptr = std::unique_ptr<node>;
 
+/// Rearrange expressions to remove "factor", "term", and expression
+/// nodes, and put the tree in prefix form.
 struct rearrange_expr : parse_tree::apply<rearrange_expr>
 {
     template <typename... States>
@@ -173,6 +244,7 @@ struct rearrange_expr : parse_tree::apply<rearrange_expr>
     }
 };
 
+/// Store a literal number, (integer), in the parse tree.
 struct store_number : parse_tree::apply<store_number>
 {
     template< typename... States>
@@ -185,6 +257,7 @@ struct store_number : parse_tree::apply<store_number>
     }
 };
 
+/// Store a symbol in the parse tree.
 struct store_symbol : parse_tree::apply<store_symbol>
 {
     template< typename... States>
@@ -196,6 +269,7 @@ struct store_symbol : parse_tree::apply<store_symbol>
     }
 };
 
+/// Attempt to set the std::variant according to the type provided.
 template<typename Rule>
 bool try_type(Ptr &n)
 {
@@ -206,6 +280,9 @@ bool try_type(Ptr &n)
     return false;
 }
 
+
+/// Remove the content from the node, and attempt to classify its
+/// type.
 struct remove_content : parse_tree::apply<remove_content>
 {
     template< typename... States>
@@ -225,11 +302,17 @@ struct remove_content : parse_tree::apply<remove_content>
 };
 
 
+/// Used to select which nodes are created.
 template <typename Rule>
 using selector = parse_tree::selector<
   Rule,
+  /// For integers, create a number parse node.
   store_number::on< integer >,
+
+  /// for identifiers, create a symbol node.
   store_symbol::on< identifier >,
+
+  /// Remove the content and classify the nodes for these.
   remove_content::on<
     assignment_statement,
     expression_statement,
@@ -241,6 +324,8 @@ using selector = parse_tree::selector<
     unary_minus,
     function_call
   >,
+
+  /// Rearrange the expression sub-tree nodes.
   rearrange_expr::on<
     factor,
     expression,
@@ -248,6 +333,9 @@ using selector = parse_tree::selector<
   >
 >;
 
+/// Evaluate the parse tree.
+/// Once the parse has completed, traverse the parse tree evaluating the nodes to
+/// produce a result.
 class evaluator
 {
 public:
@@ -259,21 +347,58 @@ public:
     evaluator& operator=(const evaluator &) = delete;
     evaluator& operator=(evaluator &&) = default;
 
+    /// Visit a node.
     int visit(const node&);
+
+    /// Visit a node based on its kind.
     int visit(const node &, const node_kind &);
+
+    /// Visit an assignment statement.  Evaluate the RHS, and assign the result
+    /// to the given identifier, (LHS).
     int visit(const node &, const assignment_statement &);
+
+    /// Visit an expression statement.  Evaluate the expression and print the result.
     int visit(const node &, const expression_statement &);
+
+    /// Visit an addition node. Evalate the LHS, evaluate the RHS, add them together,
+    /// and return the result.
     int visit(const node &, const addition &);
+
+    /// Visit a subtraction node. Evaluate the LHS and RHS, subtract the
+    /// RHS from the LHS, return the result.
     int visit(const node &, const subtraction &);
+
+    /// Visit a multiplication node. Evalute the LHS and RHS, multiply them, return
+    /// the result.
     int visit(const node &, const multiplication &);
+
+    /// Visit a division node.  Evaluate the LHS and RHS, divide LHS by RHS.
     int visit(const node &, const division &);
+
+    /// Visit a unary_minus node. Evaluate the operand, negate it and return the result.
     int visit(const node &, const unary_minus &);
+
+    /// Visit a unary_plus node.  Evaluate the operand, and return it.
     int visit(const node &, const unary_plus &);
+
+    /// Visit a symbol, (identifier), node.  Store the symbol name in the node,
+    /// Return the value of the symbol from the symbol table.  If the symbol has
+    /// never before been seen, set it's value to zero.
     int visit(const node &, const symbol &);
+
+    /// Visit a number, (integer), node.  Store the binary value of the integer in
+    /// the node.
     int visit(const node &, const number &);
+
+    /// Visit a function_call node.  If the function is not known, return 0.
+    /// Otherwise, evaluate the operand expression, apply the function and return
+    /// the value.
+    /// @note
+    /// Currently, the only known function is "abs" for absolute value.
     int visit(const node &, const function_call &);
 
 private:
+    /// The symbol table.  Map the symbol names to their values.
     std::map<std::string, int> _symbol_table;
 };
 
