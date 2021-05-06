@@ -394,7 +394,9 @@ public:
     /// Otherwise, evaluate the operand expression, apply the function and return
     /// the value.
     /// @note
-    /// Currently, the only known function is "abs" for absolute value.
+    /// Currently, the only known functions are:
+    ///  "abs" for absolute value.
+    ///  "sgn" returns -1, 0, or 1, depending on the sign of the operand.
     int visit(const node &, const function_call &);
 
 private:
@@ -505,13 +507,20 @@ evaluator::visit(const node &n, const subtraction &)
 int
 evaluator::visit(const node &n, const function_call &f)
 {
+    auto operand = visit(*n.children[1]);
     auto func = std::get<symbol>(n.children[0]->kind)._value;
-    if (func != "abs") {
-        std::cerr << "Unknown function: " << func << " -- ignored.\n";
+    if (func == "abs") {
+        return abs(operand);
+    } else if (func == "sgn") {
+        if (operand < 0) {
+            return -1;
+        } else if (operand > 0) {
+            return 1;
+        }
         return 0;
     }
-    auto operand = visit(*n.children[1]);
-    return abs(operand);
+    std::cerr << "Unknown function: " << func << " -- ignored.\n";
+    return operand;
 }
 
 int main(int argc, char *argv[])
