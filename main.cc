@@ -113,7 +113,14 @@ struct binary_adding_operator : sor< addition, subtraction > { };
 /// multiplying_operator <- multiplucation / division / modulus
 struct multiplying_operator : sor< multiplication, division, modulus > { };
 
+/// IF <- if !identifier_other
 struct IF : keyword< 'i', 'f' > { };
+
+/// ELSE <- else !identifier_other
+struct ELSE : keyword< 'e', 'l', 's', 'e' > { };
+
+/// keywords <- IF / ELSE
+struct keywords: sor< IF, ELSE > { };
 
 struct expression;
 struct factor;
@@ -148,14 +155,15 @@ struct factor :
 
 struct statement;
 
-/// if_statement <- IF '(' expression ')' statement
+/// if_statement <- IF '(' expression ')' statement (ELSE statement)?
 struct if_statement :
     seq<
         IF, wss,
         LPAREN, wss,
         expression, wss,
         RPAREN, wss,
-        statement
+        statement,
+        opt< wss, ELSE, wss, statement >
     > { };
 
 /// assignment_statement <- assignment
@@ -515,6 +523,10 @@ evaluator::visit(const node &n, const if_statement &)
     auto res = visit(cond);
     if (res != 0) {
         visit(*n.children[1]);
+    } else {
+        if (n.children.size() == 3) {
+            visit(*n.children[2]);
+        }
     }
     return 0;
 }
