@@ -113,6 +113,7 @@ struct binary_adding_operator : sor< addition, subtraction > { };
 /// multiplying_operator <- multiplucation / division / modulus
 struct multiplying_operator : sor< multiplication, division, modulus > { };
 
+struct IF : keyword< 'i', 'f' > { };
 
 struct expression;
 struct factor;
@@ -121,7 +122,6 @@ struct term;
 
 /// integer <- digit+
 struct integer : plus< digit > { };
-
 
 /// function_call <- identifier LPAREN expression RPAREN
 struct function_call :
@@ -146,6 +146,17 @@ struct parenthesized_expr : seq< LPAREN, wss, expression, wss, RPAREN > { };
 struct factor :
     sor< function_call, integer, identifier, parenthesized_expr > { };
 
+struct statement;
+
+/// if_statement <- IF '(' expression ')' statement
+struct if_statement :
+    seq<
+        IF, wss,
+        LPAREN, wss,
+        expression, wss,
+        RPAREN, wss,
+        statement
+    > { };
 
 /// assignment_statement <- assignment
 struct assignment_statement : seq< assignment, wss, SEMI > { };
@@ -158,6 +169,7 @@ struct statement;
 /// simple_statement <- (assignment_statement / expression_statement / if_statement) SEMI
 struct simple_statement :
     sor<
+        if_statement,
         assignment_statement,
         expression_statement
     > { };
@@ -206,19 +218,20 @@ struct symbol
 using node_kind =
     std::variant <
         std::monostate,       ///< Placeholder.
-        compound_statement,   ///< Compound statement { statement+ }
-        assignment_statement, ///< This node is an assignment statement. ( x:= 5; )
-        expression_statement, ///< This node is an expression statement. ( x; )
-        number,               ///< This node is a numeric literal.       ( 42 )
-        symbol,               ///< This node is a symbol.                ( x )
-        subtraction,          ///< This node is a subtraction operation. ( x - 2 )
-        addition,             ///< This node is an addition operation.   ( x + 5 )
-        multiplication,       ///< This is a multiplication operation.   ( x * y )
-        division,             ///< This is a division operation.         ( x / y )
-        modulus,              ///< This is a modulus operation.          ( x % y )
-        unary_minus,          ///< Unary minus                           ( -x )
-        unary_plus,           ///< Unary plus                            ( +x )
-        function_call         ///< Function call                         ( abs(x) )
+        if_statement,         ///< if statement:         if (x) stm;
+        compound_statement,   ///< Compound statement:   { statement+ }
+        assignment_statement, ///< Assignment statement: x:= 5;
+        expression_statement, ///< Expression statement: x;
+        number,               ///< Numeric literal:      42
+        symbol,               ///< Symbol:               x
+        subtraction,          ///< Subtraction:          x - 2
+        addition,             ///< Addition:             x + 5
+        multiplication,       ///< Multiplication:       x * y
+        division,             ///< Division:             x / y
+        modulus,              ///< Modulus:              x % y
+        unary_minus,          ///< Unary minus:          -x
+        unary_plus,           ///< Unary plus:           +x
+        function_call         ///< Function call:        abs(x)
     >;
 
 /// Parse tree node is the same as a PEGTL basic node, but adds
@@ -319,6 +332,7 @@ struct remove_content : parse_tree::apply<remove_content>
     static void transform( Ptr &n, States&&... st)
     {
         try_type<function_call>(n)        ||
+        try_type<if_statement>(n)         ||
         try_type<assignment_statement>(n) ||
         try_type<assignment_statement>(n) ||
         try_type<expression_statement>(n) ||
@@ -351,6 +365,7 @@ using selector = parse_tree::selector<
 
   /// Remove the content and classify the nodes for these.
   remove_content::on<
+    if_statement,
     assignment_statement,
     expression_statement,
     compound_statement,
@@ -391,6 +406,10 @@ public:
 
     /// Visit a node based on its kind.
     int visit(const node &, const node_kind &);
+
+    /// Visit an if statement.  Evaluate the expression, if the result it non-zero,
+    /// evaluate the children.
+    int visit(const node &, const if_statement &);
 
     /// Visit an assignment statement.  Evaluate the RHS, and assign the result
     /// to the given identifier, (LHS).
@@ -464,6 +483,7 @@ evaluator::visit(const node &n, const node_kind &kind)
 {
     return
       std::visit(overloaded {
+        [this, &n](const if_statement& is)         { return this->visit(n, is); },
         [this, &n](const assignment_statement& as) { return this->visit(n, as); },
         [this, &n](const expression_statement& es) { return this->visit(n, es); },
         [this, &n](const addition &add)            { return this->visit(n, add); },
@@ -478,13 +498,25 @@ evaluator::visit(const node &n, const node_kind &kind)
         [this, &n](const function_call  &f)        { return this->visit(n, f); },
         [this, &n](auto arg)
         {
+            auto res = 0;
             auto &c = n.children;
             for (const auto &child: c) {
-                this->visit(*child);
+                res = this->visit(*child);
             }
-            return 0;
+            return res;
         }
       }, kind);
+}
+
+int
+evaluator::visit(const node &n, const if_statement &)
+{
+    const auto &cond = *n.children[0];
+    auto res = visit(cond);
+    if (res != 0) {
+        visit(*n.children[1]);
+    }
+    return 0;
 }
 
 int
