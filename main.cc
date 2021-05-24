@@ -65,11 +65,20 @@ struct STAR   : one< '*' > { };
 /// SLASH <- '/'
 struct SLASH  : one< '/' > { };
 
+/// PERCENT <- '%'
+struct PERCENT : one< '%' > { };
+
 /// LPAREN <- '('
 struct LPAREN : one< '(' > { };
 
 /// RPAREN <- ')'
 struct RPAREN : one< ')' > { };
+
+/// LBRACE <- '{'
+struct LBRACE : one< '{' > { };
+
+/// RBRACE <- '}'
+struct RBRACE : one< '}' > { };
 
 /// SEMI <- ';'
 struct SEMI   : one< ';' > { };
@@ -92,14 +101,17 @@ struct multiplication : STAR { };
 /// division <- SLASH
 struct division : SLASH { };
 
+/// modulus <- PERCENT
+struct modulus : PERCENT { };
+
 /// unary_adding_operator <- unary_plus / unary_minus
 struct unary_adding_operator : sor< unary_plus, unary_minus > { };
 
 /// binary_adding_operator <- addition / subtraction
 struct binary_adding_operator : sor< addition, subtraction > { };
 
-/// multiplying_operator <- multiplucation / division
-struct multiplying_operator : sor< multiplication, division > { };
+/// multiplying_operator <- multiplucation / division / modulus
+struct multiplying_operator : sor< multiplication, division, modulus > { };
 
 
 struct expression;
@@ -136,13 +148,30 @@ struct factor :
 
 
 /// assignment_statement <- assignment
-struct assignment_statement : assignment { };
+struct assignment_statement : seq< assignment, wss, SEMI > { };
 
 /// expression_statement < expression
-struct expression_statement : seq< expression > { };
+struct expression_statement : seq< expression, wss, SEMI > { };
 
-/// statement <- (assignment_statement / expression_statement) SEMI
-struct statement : seq< sor< assignment_statement, expression_statement >, wss, SEMI > { };
+struct statement;
+
+/// simple_statement <- (assignment_statement / expression_statement / if_statement) SEMI
+struct simple_statement :
+    sor<
+        assignment_statement,
+        expression_statement
+    > { };
+
+/// compound_statement <- '{' statement* '}'
+struct compound_statement :
+    seq<
+        LBRACE, wss,
+        star< statement, wss >, wss,
+        RBRACE
+    > { };
+
+/// statement <- compound_statement / simple_statement
+struct statement : sor< compound_statement, simple_statement > { };
 
 /// grammar <- statement+ eolf
 struct grammar : seq< wss, plus< statement, wss >, eolf > { };
@@ -176,20 +205,21 @@ struct symbol
 /// tree node.
 using node_kind =
     std::variant <
-        std::monostate,           ///< Placeholder.
-        assignment_statement,     ///< This node is an assignment statement. ( x:= 5; )
-        expression_statement,     ///< This node is an expression statement. ( x; )
-        number,                   ///< This node is a numeric literal.       ( 42 )
-        symbol,                   ///< This node is a symbol.                ( x )
-        subtraction,              ///< This node is a subtraction operation. ( x - 2 )
-        addition,                 ///< This node is an addition operation.   ( x + 5 )
-        multiplication,           ///< This is a multiplication operation.   ( x * y )
-        division,                 ///< This is a division operation.         ( x / y )
-        unary_minus,              ///< Unary minus                           ( -x )
-        unary_plus,               ///< Unary plus                            ( +x )
-        function_call             ///< Function call                         ( abs(x) )
+        std::monostate,       ///< Placeholder.
+        compound_statement,   ///< Compound statement { statement+ }
+        assignment_statement, ///< This node is an assignment statement. ( x:= 5; )
+        expression_statement, ///< This node is an expression statement. ( x; )
+        number,               ///< This node is a numeric literal.       ( 42 )
+        symbol,               ///< This node is a symbol.                ( x )
+        subtraction,          ///< This node is a subtraction operation. ( x - 2 )
+        addition,             ///< This node is an addition operation.   ( x + 5 )
+        multiplication,       ///< This is a multiplication operation.   ( x * y )
+        division,             ///< This is a division operation.         ( x / y )
+        modulus,              ///< This is a modulus operation.          ( x % y )
+        unary_minus,          ///< Unary minus                           ( -x )
+        unary_plus,           ///< Unary plus                            ( +x )
+        function_call         ///< Function call                         ( abs(x) )
     >;
-
 
 /// Parse tree node is the same as a PEGTL basic node, but adds
 /// the variant described above to differentiate the types of nodes.
@@ -290,10 +320,12 @@ struct remove_content : parse_tree::apply<remove_content>
     {
         try_type<function_call>(n)        ||
         try_type<assignment_statement>(n) ||
+        try_type<assignment_statement>(n) ||
         try_type<expression_statement>(n) ||
         try_type<addition>(n)             ||
         try_type<subtraction>(n)          ||
         try_type<multiplication>(n)       ||
+        try_type<modulus>(n)              ||
         try_type<division>(n)             ||
         try_type<unary_plus>(n)           ||
         try_type<unary_minus>(n);
@@ -306,6 +338,11 @@ struct remove_content : parse_tree::apply<remove_content>
 template <typename Rule>
 using selector = parse_tree::selector<
   Rule,
+  /// Uncomment to see parenthesized expression in the parse tree.
+  /// Use this to track where parenthesis were in the source code in
+  /// expressions.
+  // parse_tree::store_content::on< parenthesized_expr >,
+
   /// For integers, create a number parse node.
   store_number::on< integer >,
 
@@ -316,10 +353,12 @@ using selector = parse_tree::selector<
   remove_content::on<
     assignment_statement,
     expression_statement,
+    compound_statement,
     addition,
     subtraction,
     multiplication,
     division,
+    modulus,
     unary_plus,
     unary_minus,
     function_call
@@ -375,6 +414,9 @@ public:
     /// Visit a division node.  Evaluate the LHS and RHS, divide LHS by RHS.
     int visit(const node &, const division &);
 
+    /// Visit a modulus node.  Evaluate the LHS % RHS
+    int visit(const node &, const modulus &);
+
     /// Visit a unary_minus node. Evaluate the operand, negate it and return the result.
     int visit(const node &, const unary_minus &);
 
@@ -428,12 +470,20 @@ evaluator::visit(const node &n, const node_kind &kind)
         [this, &n](const subtraction &sub)         { return this->visit(n, sub); },
         [this, &n](const multiplication &mul)      { return this->visit(n, mul); },
         [this, &n](const division &div)            { return this->visit(n, div); },
+        [this, &n](const modulus &div)             { return this->visit(n, div); },
         [this, &n](const unary_minus &um)          { return this->visit(n, um); },
         [this, &n](const unary_plus &up)           { return this->visit(n, up); },
         [this, &n](const symbol &sym)              { return this->visit(n, sym); },
         [this, &n](const number  &i)               { return this->visit(n, i); },
         [this, &n](const function_call  &f)        { return this->visit(n, f); },
-        [](auto arg)                           { return 0;}
+        [this, &n](auto arg)
+        {
+            auto &c = n.children;
+            for (const auto &child: c) {
+                this->visit(*child);
+            }
+            return 0;
+        }
       }, kind);
 }
 
@@ -489,6 +539,12 @@ int
 evaluator::visit(const node &n, const division &)
 {
     return visit(*n.children[0]) / visit(*n.children[1]);
+}
+
+int
+evaluator::visit(const node &n, const modulus &)
+{
+    return visit(*n.children[0]) % visit(*n.children[1]);
 }
 
 int
