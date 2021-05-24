@@ -35,8 +35,15 @@
 
 using namespace TAO_PEGTL_NAMESPACE;
 
+/// comment <- // .* eolf
+struct comment :
+    seq<
+        two< '/' >,
+        until< eolf >
+    > { };
+
 /// ws <- space
-struct ws    : space { };
+struct ws    : sor< space, comment > { };
 
 /// wsp <- ws+
 struct wsp   : plus< ws > { };
@@ -342,7 +349,6 @@ struct remove_content : parse_tree::apply<remove_content>
         try_type<function_call>(n)        ||
         try_type<if_statement>(n)         ||
         try_type<assignment_statement>(n) ||
-        try_type<assignment_statement>(n) ||
         try_type<expression_statement>(n) ||
         try_type<addition>(n)             ||
         try_type<subtraction>(n)          ||
@@ -531,11 +537,21 @@ evaluator::visit(const node &n, const if_statement &)
     return 0;
 }
 
+void
+checkKeyword(const std::string &val)
+{
+    if (val == "if" || val == "else") {
+        std::cerr << "Warning: keyword '" << val << "' used as identifier."
+                  << std::endl;
+    }
+}
+
 int
 evaluator::visit(const node &n, const assignment_statement &)
 {
     auto res = visit(*n.children[1]);
     auto var = std::get<symbol>(n.children[0]->kind)._value;
+    checkKeyword(var);
     _symbol_table[var] = res;
     std::cerr << "Result: " << var << " = " << res << std::endl;
     return res;
@@ -552,6 +568,8 @@ evaluator::visit(const node &n, const expression_statement &)
 int
 evaluator::visit(const node &n, const symbol &sym)
 {
+    auto val = sym._value;
+    checkKeyword(val);
     return _symbol_table[sym._value];
 }
 
@@ -639,7 +657,7 @@ int main(int argc, char *argv[])
                 evaluator eval;
                 eval.visit(*root);
             } else {
-                std::cout << "Parse fail." << std::endl;
+                std::cerr << "Parse fail." << std::endl;
                 return 1;
             }
         } catch (const std::exception &e) {
