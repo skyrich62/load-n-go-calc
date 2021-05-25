@@ -87,8 +87,17 @@ struct LBRACE : one< '{' > { };
 /// RBRACE <- '}'
 struct RBRACE : one< '}' > { };
 
+/// LANGLE <- '<'
+struct LANGLE : one< '<' > { };
+
+/// RANGLE <- '}'
+struct RANGLE : one< '>' > { };
+
 /// SEMI <- ';'
 struct SEMI   : one< ';' > { };
+
+/// BANG <- '!'
+struct BANG   : one< '!' > { };
 
 /// unary_plus <- PLUS
 struct unary_plus : PLUS { };
@@ -111,6 +120,24 @@ struct division : SLASH { };
 /// modulus <- PERCENT
 struct modulus : PERCENT { };
 
+/// greater_than <- RANGLE !EQUAL
+struct greater_than : seq< RANGLE, not_at< EQUAL > > { };
+
+/// greater_or_equal < - RANGLE EGUAL
+struct greater_or_equal : seq< RANGLE, EQUAL > { };
+
+/// less_than <- LANGLE !EQUAL
+struct less_than : seq< LANGLE, not_at< EQUAL > > { };
+
+/// less_or_equal <- LANGLE EQUAL
+struct less_or_equal : seq< LANGLE, EQUAL > { };
+
+/// equal_to <- EQUAL
+struct equal_to : EQUAL { };
+
+/// not_equal <- BANG EQUAL
+struct not_equal : seq< BANG, EQUAL > { };
+
 /// unary_adding_operator <- unary_plus / unary_minus
 struct unary_adding_operator : sor< unary_plus, unary_minus > { };
 
@@ -120,15 +147,50 @@ struct binary_adding_operator : sor< addition, subtraction > { };
 /// multiplying_operator <- multiplucation / division / modulus
 struct multiplying_operator : sor< multiplication, division, modulus > { };
 
+/// relational_operator <- equal_to / not_equal / greater_than /
+///                        greater_or_equal / less_than / less_or_equal
+struct relational_operator :
+    sor<
+        equal_to, not_equal,
+        greater_or_equal, greater_than,
+        less_or_equal, less_than
+    > { };
+
+
 /// IF <- if !identifier_other
 struct IF : keyword< 'i', 'f' > { };
 
 /// ELSE <- else !identifier_other
 struct ELSE : keyword< 'e', 'l', 's', 'e' > { };
 
-/// keywords <- IF / ELSE
-struct keywords: sor< IF, ELSE > { };
+/// THEN <- then !identifier_other
+struct THEN : keyword< 't', 'h', 'e', 'n' > { };
 
+/// OR <- or !identifier_other
+struct ORkw : keyword< 'o', 'r' > { };
+
+/// AND <- and !identifier_other
+struct ANDkw : keyword< 'a', 'n', 'd' > { };
+
+/// AND <- ANDkw !(wsp THEN)
+struct AND : seq< ANDkw, not_at< wsp, THEN > > { };
+
+/// AND_THEN <- ANDkw THEN
+struct AND_THEN : seq< ANDkw, wsp, THEN > { };
+
+/// OR <- ORkw !(wsp ELSE)
+struct OR : seq< ORkw, not_at< wsp, ELSE > > { };
+
+/// OR_ELSE
+struct OR_ELSE : seq< ORkw, wsp, ELSE > { };
+
+/// keywords <- IF / ELSE
+struct keywords: sor< IF, ELSE, OR, THEN, AND > { };
+
+/// logical_operator <- OR / AND / AND_THEN / OR_ELSE
+struct logical_operator : sor< AND_THEN, OR_ELSE, OR, AND > { };
+
+struct relation;
 struct expression;
 struct factor;
 struct term;
@@ -144,11 +206,15 @@ struct function_call :
 /// assignment <- identifier ASSIGN expression
 struct assignment : seq< identifier, wss, ASSIGN, wss, expression > { };
 
-/// expression <- unary_adding_operator? term (binary_adding_operator term)*
-struct expression : seq<
-                      opt< unary_adding_operator, wss >,
-                      list< term, binary_adding_operator, ws >
-                    > { };
+/// expression <- relation (wss, logical_operator)*
+struct expression : list< relation, logical_operator, ws> { };
+
+/// simple_expression <- unary_adding_operator? term (binary_adding_operator term)*
+struct simple_expression :
+    seq<
+        opt< unary_adding_operator, wss >,
+        list< term, binary_adding_operator, ws >
+    > { };
 
 /// term <- factor (multiplying_operator factor)*
 struct term : list< factor, multiplying_operator, ws > { };
@@ -159,6 +225,10 @@ struct parenthesized_expr : seq< LPAREN, wss, expression, wss, RPAREN > { };
 /// factor <- function_call / integer / identifier / parenthesized_expr
 struct factor :
     sor< function_call, integer, identifier, parenthesized_expr > { };
+
+
+/// relation <- simple_expression (relational_operator wss simple_expression)*
+struct relation : list< simple_expression, relational_operator, ws> { };
 
 struct statement;
 
@@ -243,6 +313,16 @@ using node_kind =
         addition,             ///< Addition:             x + 5
         multiplication,       ///< Multiplication:       x * y
         division,             ///< Division:             x / y
+        equal_to,             ///< Equal to              x = y
+        not_equal,            ///< Not equal             x != y
+        greater_than,         ///< Greather than         x > y
+        greater_or_equal,     ///< Greator or equal      x >= y
+        less_than,            ///< Less than             x < y
+        less_or_equal,        ///< Less or equal         x <= y
+        AND,                  ///< Logical AND           x and y
+        OR,                   ///< Logical OR            x or y
+        AND_THEN,             ///< Logical AND THEN      x and then y
+        OR_ELSE,              ///< Logical OR ELSE       x or else y
         modulus,              ///< Modulus:              x % y
         unary_minus,          ///< Unary minus:          -x
         unary_plus,           ///< Unary plus:           +x
@@ -346,6 +426,16 @@ struct remove_content : parse_tree::apply<remove_content>
     template< typename... States>
     static void transform( Ptr &n, States&&... st)
     {
+        try_type<OR>(n)                   ||
+        try_type<AND>(n)                  ||
+        try_type<OR_ELSE>(n)              ||
+        try_type<AND_THEN>(n)             ||
+        try_type<equal_to>(n)             ||
+        try_type<not_equal>(n)            ||
+        try_type<greater_than>(n)         ||
+        try_type<greater_or_equal>(n)     ||
+        try_type<less_than>(n)            ||
+        try_type<less_or_equal>(n)        ||
         try_type<function_call>(n)        ||
         try_type<if_statement>(n)         ||
         try_type<assignment_statement>(n) ||
@@ -387,6 +477,16 @@ using selector = parse_tree::selector<
     subtraction,
     multiplication,
     division,
+    equal_to,
+    not_equal,
+    less_than,
+    less_or_equal,
+    greater_than,
+    greater_or_equal,
+    AND,
+    OR,
+    AND_THEN,
+    OR_ELSE,
     modulus,
     unary_plus,
     unary_minus,
@@ -450,6 +550,49 @@ public:
     /// Visit a modulus node.  Evaluate the LHS % RHS
     int visit(const node &, const modulus &);
 
+
+    /// Visit an equal_to node.  Evaluate LHS and RHS if they are equal,
+    /// return 1, else 0.
+    int visit(const node &, const equal_to &);
+
+    /// Visit a not_equal_node.  Evaluate LHS and RHS if they are not equal,
+    /// return 1, else 0.
+    int visit(const node &, const not_equal &);
+
+    /// Visit a greater_than node.  Evaluate LHS, and RHS, if LHS > RHS,
+    /// return 1, else 0.
+    int visit(const node &, const greater_than &);
+
+    /// Visit a greater_or_equal node.  Evaluate LHS and RHS, if LHS >= RHS
+    /// return 1, else 0.
+    int visit(const node &, const greater_or_equal &);
+
+    /// Visit a less_than node.  Evaluate LHS and RHS, if LHS < RHS return
+    /// 1 else 0.
+    int visit(const node &, const less_than &);
+
+    /// Visit a less_or_equal node.  Evaluate LHS and RHS, if LHS <= RHS
+    /// return 1, else 0.
+    int visit(const node &, const less_or_equal &);
+
+    /// Visit an AND node.  Evaluate LHS and RHS.
+    /// Return 1 if both are non-zero else 0.
+    int visit(const node &, const AND &);
+
+    /// Visit an AND_THEN node.
+    /// Evaluate the LHS if it is non-zero evaluate the RHS, if that is also
+    /// non-zero return 1 else 0.
+    int visit(const node &, const AND_THEN &);
+
+    /// Visit an OR node.
+    /// Evaluate the LHS and the RHS, return 1 if either is non-zero, else 0.
+    int visit(const node &, const OR &);
+
+    /// Visit an OR_ELSE node.
+    /// Visit the LHS, if it is non-zero, return 1.
+    /// Otherwise, visit the RHS and return 1 if it's non-zero, else return 0.
+    int visit(const node &, const OR_ELSE &);
+
     /// Visit a unary_minus node. Evaluate the operand, negate it and return the result.
     int visit(const node &, const unary_minus &);
 
@@ -510,6 +653,16 @@ evaluator::visit(const node &n, const node_kind &kind)
         [this, &n](const symbol &sym)              { return this->visit(n, sym); },
         [this, &n](const number  &i)               { return this->visit(n, i); },
         [this, &n](const function_call  &f)        { return this->visit(n, f); },
+        [this, &n](const greater_than &gt)         { return this->visit(n, gt);},
+        [this, &n](const greater_or_equal &ge)     { return this->visit(n, ge); },
+        [this, &n](const less_than &lt)            { return this->visit(n, lt); },
+        [this, &n](const less_or_equal &le)        { return this->visit(n, le); },
+        [this, &n](const equal_to &eq)             { return this->visit(n, eq); },
+        [this, &n](const not_equal &ne)            { return this->visit(n, ne); },
+        [this, &n](const OR &o)                    { return this->visit(n, o); },
+        [this, &n](const OR_ELSE &oe)              { return this->visit(n, oe); },
+        [this, &n](const AND &a)                   { return this->visit(n, a); },
+        [this, &n](const AND_THEN &at)             { return this->visit(n, at); },
         [this, &n](auto arg)
         {
             auto res = 0;
@@ -621,6 +774,129 @@ evaluator::visit(const node &n, const subtraction &)
     return visit(*n.children[0]) - visit(*n.children[1]);
 }
 
+int
+evaluator::visit(const node &n, const OR &)
+{
+    auto lhs = visit(*n.children[0]);
+    auto rhs = visit(*n.children[1]);
+    if ((lhs != 0) || (rhs != 0)) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int
+evaluator::visit(const node &n, const OR_ELSE &)
+{
+    auto lhs = visit(*n.children[0]);
+    if (lhs != 0) {
+        return 1;
+    }
+    auto rhs = visit(*n.children[1]);
+    if (rhs != 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int
+evaluator::visit(const node &n, const AND &)
+{
+    auto lhs = visit(*n.children[0]);
+    auto rhs = visit(*n.children[1]);
+    if ((lhs != 0) && (rhs != 0)) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int
+evaluator::visit(const node &n, const AND_THEN &)
+{
+    auto lhs = visit(*n.children[0]);
+    if (lhs == 0) {
+        return 0;
+    }
+    auto rhs = visit(*n.children[1]);
+    if (rhs != 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int
+evaluator::visit(const node &n, const equal_to &)
+{
+    auto lhs = visit(*n.children[0]);
+    auto rhs = visit(*n.children[1]);
+    if (lhs == rhs) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int
+evaluator::visit(const node &n, const not_equal &)
+{
+    auto lhs = visit(*n.children[0]);
+    auto rhs = visit(*n.children[1]);
+    if (lhs != rhs) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int
+evaluator::visit(const node &n, const less_than &)
+{
+    auto lhs = visit(*n.children[0]);
+    auto rhs = visit(*n.children[1]);
+    if (lhs < rhs) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int
+evaluator::visit(const node &n, const less_or_equal &)
+{
+    auto lhs = visit(*n.children[0]);
+    auto rhs = visit(*n.children[1]);
+    if (lhs <= rhs) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int
+evaluator::visit(const node &n, const greater_than &)
+{
+    auto lhs = visit(*n.children[0]);
+    auto rhs = visit(*n.children[1]);
+    if (lhs > rhs) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int
+evaluator::visit(const node &n, const greater_or_equal &)
+{
+    auto lhs = visit(*n.children[0]);
+    auto rhs = visit(*n.children[1]);
+    if (lhs >= rhs) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
 
 int
 evaluator::visit(const node &n, const function_call &f)
