@@ -42,7 +42,7 @@ struct comment :
         until< eolf >
     > { };
 
-/// ws <- space
+/// ws <- space / comment
 struct ws    : sor< space, comment > { };
 
 /// wsp <- ws+
@@ -144,7 +144,7 @@ struct unary_adding_operator : sor< unary_plus, unary_minus > { };
 /// binary_adding_operator <- addition / subtraction
 struct binary_adding_operator : sor< addition, subtraction > { };
 
-/// multiplying_operator <- multiplucation / division / modulus
+/// multiplying_operator <- multiplication / division / modulus
 struct multiplying_operator : sor< multiplication, division, modulus > { };
 
 /// relational_operator <- equal_to / not_equal / greater_than /
