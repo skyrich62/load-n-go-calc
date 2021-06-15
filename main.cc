@@ -524,14 +524,14 @@ class evaluator
 {
 public:
     using Symbols = std::map<std::string, int>;
-    class stack_frame
+    class symbol_scope
     {
     public:
         /// Create a new stack frame and push it onto the stack.
-        stack_frame();
+        symbol_scope();
 
         /// Destroy a stack frame, pop it off the stack.
-        ~stack_frame();
+        ~symbol_scope();
 
         /// lookup a symbol name
         /// @return a reference to the symbol, creating it in the current
@@ -539,8 +539,8 @@ public:
         static int& lookup(const std::string &name);
     private:
         Symbols _table;
-        stack_frame *_previous = nullptr;
-        static stack_frame *_current;
+        symbol_scope *_previous = nullptr;
+        static symbol_scope *_current;
     };
     evaluator() = default;
     evaluator(const evaluator &) = delete;
@@ -656,25 +656,25 @@ public:
     int visit(const node &, const function_call &);
 
 private:
-    stack_frame globals;
+    symbol_scope globals;
 
 };
 
-evaluator::stack_frame* evaluator::stack_frame::_current = nullptr;
+evaluator::symbol_scope* evaluator::symbol_scope::_current = nullptr;
 
-evaluator::stack_frame::stack_frame()
+evaluator::symbol_scope::symbol_scope()
 {
     _previous = _current;
     _current = this;
 }
 
-evaluator::stack_frame::~stack_frame()
+evaluator::symbol_scope::~symbol_scope()
 {
     _current = _previous;
 }
 
 int &
-evaluator::stack_frame::lookup(const std::string &n)
+evaluator::symbol_scope::lookup(const std::string &n)
 {
     auto frame = _current;
     while (frame) {
@@ -746,7 +746,7 @@ evaluator::visit(const node &n, const node_kind &kind)
 int
 evaluator::visit(const node &n, const compound_statement&)
 {
-    stack_frame locals;
+    symbol_scope locals;
     auto res = 0;
     auto &c = n.children;
     for (const auto &child : c) {
@@ -785,7 +785,7 @@ evaluator::visit(const node &n, const assignment_statement &)
     auto res = visit(*n.children[1]);
     auto var = std::get<symbol>(n.children[0]->kind)._value;
     checkKeyword(var);
-    stack_frame::lookup(var) = res;
+    symbol_scope::lookup(var) = res;
     std::cerr << "Result: " << var << " = " << res << std::endl;
     return res;
 }
@@ -803,7 +803,7 @@ evaluator::visit(const node &n, const symbol &sym)
 {
     auto val = sym._value;
     checkKeyword(val);
-    return stack_frame::lookup(val);
+    return symbol_scope::lookup(val);
 }
 
 int
