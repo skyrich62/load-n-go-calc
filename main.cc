@@ -190,6 +190,9 @@ struct keywords: sor< IF, ELSE, OR, THEN, AND > { };
 /// logical_operator <- OR / AND / AND_THEN / OR_ELSE
 struct logical_operator : sor< AND_THEN, OR_ELSE, OR, AND > { };
 
+/// symbol_name <- !keywords  identifier
+struct symbol_name : seq< not_at< keywords >, identifier > { };
+
 struct relation;
 struct expression;
 struct factor;
@@ -199,12 +202,12 @@ struct term;
 /// integer <- digit+
 struct integer : plus< digit > { };
 
-/// function_call <- identifier LPAREN expression RPAREN
+/// function_call <- symbol_name LPAREN expression RPAREN
 struct function_call :
-    seq< identifier, wss, LPAREN, wss, expression, wss, RPAREN > { };
+    seq< symbol_name, wss, LPAREN, wss, expression, wss, RPAREN > { };
 
-/// assignment <- identifier ASSIGN expression
-struct assignment : seq< identifier, wss, ASSIGN, wss, expression > { };
+/// assignment <- symbol_name ASSIGN expression
+struct assignment : seq< symbol_name, wss, ASSIGN, wss, expression > { };
 
 /// expression <- relation (wss, logical_operator)*
 struct expression : list< relation, logical_operator, ws> { };
@@ -222,9 +225,9 @@ struct term : list< factor, multiplying_operator, ws > { };
 /// parenthezised_expr <- LPAREN expression RPAREN
 struct parenthesized_expr : seq< LPAREN, wss, expression, wss, RPAREN > { };
 
-/// factor <- function_call / integer / identifier / parenthesized_expr
+/// factor <- function_call / integer / symbol_name / parenthesized_expr
 struct factor :
-    sor< function_call, integer, identifier, parenthesized_expr > { };
+    sor< function_call, integer, symbol_name, parenthesized_expr > { };
 
 
 /// relation <- simple_expression (relational_operator wss simple_expression)*
@@ -271,7 +274,7 @@ struct compound_statement :
 struct statement : sor< compound_statement, simple_statement > { };
 
 /// grammar <- statement+ eolf
-struct grammar : seq< wss, plus< statement, wss >, eolf > { };
+struct grammar : seq< wss, plus< statement, wss >, eof > { };
 
 
 /// Useful for using lambda expressions in function overloads for use with
@@ -333,6 +336,7 @@ using node_kind =
 /// the variant described above to differentiate the types of nodes.
 struct node : public tao::pegtl::parse_tree::basic_node<node>
 {
+    using inherited = tao::pegtl::parse_tree::basic_node<node>;
     node() = default;
     node(node &&) = default;
     node(const node&) = delete;
@@ -341,6 +345,17 @@ struct node : public tao::pegtl::parse_tree::basic_node<node>
 
     node& operator=(node &&) = default;
     node& operator=(const node &) = delete;
+
+    template <typename U>
+    void set_kind( U&& u) noexcept
+    {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        try {
+            kind = std::forward<U>(u);
+        } catch (...) {
+            kind = std::monostate();
+        }
+    }
 
     node_kind kind;
 };
@@ -421,7 +436,7 @@ bool try_type(Ptr &n)
 
 /// Remove the content from the node, and attempt to classify its
 /// type.
-struct remove_content : parse_tree::apply<remove_content>
+struct assign_node_type : parse_tree::apply<assign_node_type>
 {
     template< typename... States>
     static void transform( Ptr &n, States&&... st)
@@ -439,6 +454,7 @@ struct remove_content : parse_tree::apply<remove_content>
         try_type<function_call>(n)        ||
         try_type<if_statement>(n)         ||
         try_type<assignment_statement>(n) ||
+        try_type<compound_statement>(n)   ||
         try_type<expression_statement>(n) ||
         try_type<addition>(n)             ||
         try_type<subtraction>(n)          ||
@@ -464,11 +480,11 @@ using selector = parse_tree::selector<
   /// For integers, create a number parse node.
   store_number::on< integer >,
 
-  /// for identifiers, create a symbol node.
-  store_symbol::on< identifier >,
+  /// for symbol_name, create a symbol node.
+  store_symbol::on< symbol_name >,
 
   /// Remove the content and classify the nodes for these.
-  remove_content::on<
+  assign_node_type::on<
     if_statement,
     assignment_statement,
     expression_statement,
@@ -507,6 +523,25 @@ using selector = parse_tree::selector<
 class evaluator
 {
 public:
+    using Symbols = std::map<std::string, int>;
+    class stack_frame
+    {
+    public:
+        /// Create a new stack frame and push it onto the stack.
+        stack_frame();
+
+        /// Destroy a stack frame, pop it off the stack.
+        ~stack_frame();
+
+        /// lookup a symbol name
+        /// @return a reference to the symbol, creating it in the current
+        /// stack frame if necessary.
+        static int& lookup(const std::string &name);
+    private:
+        Symbols _table;
+        stack_frame *_previous = nullptr;
+        static stack_frame *_current;
+    };
     evaluator() = default;
     evaluator(const evaluator &) = delete;
     evaluator(evaluator &&) = default;
@@ -526,11 +561,14 @@ public:
     int visit(const node &, const if_statement &);
 
     /// Visit an assignment statement.  Evaluate the RHS, and assign the result
-    /// to the given identifier, (LHS).
+    /// to the given symbol_name, (LHS).
     int visit(const node &, const assignment_statement &);
 
     /// Visit an expression statement.  Evaluate the expression and print the result.
     int visit(const node &, const expression_statement &);
+
+    /// Visit a compound statement.  Evaluate each statement.
+    int visit(const node &, const compound_statement &);
 
     /// Visit an addition node. Evalate the LHS, evaluate the RHS, add them together,
     /// and return the result.
@@ -599,7 +637,7 @@ public:
     /// Visit a unary_plus node.  Evaluate the operand, and return it.
     int visit(const node &, const unary_plus &);
 
-    /// Visit a symbol, (identifier), node.  Store the symbol name in the node,
+    /// Visit a symbol, (symbol_name), node.  Store the symbol name in the node,
     /// Return the value of the symbol from the symbol table.  If the symbol has
     /// never before been seen, set it's value to zero.
     int visit(const node &, const symbol &);
@@ -618,9 +656,38 @@ public:
     int visit(const node &, const function_call &);
 
 private:
-    /// The symbol table.  Map the symbol names to their values.
-    std::map<std::string, int> _symbol_table;
+    stack_frame globals;
+
 };
+
+evaluator::stack_frame* evaluator::stack_frame::_current = nullptr;
+
+evaluator::stack_frame::stack_frame()
+{
+    _previous = _current;
+    _current = this;
+}
+
+evaluator::stack_frame::~stack_frame()
+{
+    _current = _previous;
+}
+
+int &
+evaluator::stack_frame::lookup(const std::string &n)
+{
+    auto frame = _current;
+    while (frame) {
+        try {
+            return frame->_table.at(n);
+        } catch (const std::out_of_range &) {
+            frame = frame->_previous;
+        }
+    };
+    // If we got here, we can't find the symbol. Insert a new symbol in the
+    // current frame and return that value.
+    return _current->_table[n];
+}
 
 int
 evaluator::visit(const node &n)
@@ -640,6 +707,7 @@ evaluator::visit(const node &n, const node_kind &kind)
 {
     return
       std::visit(overloaded {
+        [this, &n](const compound_statement &cs)   { return this->visit(n, cs); },
         [this, &n](const if_statement& is)         { return this->visit(n, is); },
         [this, &n](const assignment_statement& as) { return this->visit(n, as); },
         [this, &n](const expression_statement& es) { return this->visit(n, es); },
@@ -676,6 +744,18 @@ evaluator::visit(const node &n, const node_kind &kind)
 }
 
 int
+evaluator::visit(const node &n, const compound_statement&)
+{
+    stack_frame locals;
+    auto res = 0;
+    auto &c = n.children;
+    for (const auto &child : c) {
+        res = this->visit(*child);
+    }
+    return res;
+}
+
+int
 evaluator::visit(const node &n, const if_statement &)
 {
     const auto &cond = *n.children[0];
@@ -694,7 +774,7 @@ void
 checkKeyword(const std::string &val)
 {
     if (val == "if" || val == "else") {
-        std::cerr << "Warning: keyword '" << val << "' used as identifier."
+        std::cerr << "Warning: keyword '" << val << "' used as symbol_name."
                   << std::endl;
     }
 }
@@ -705,7 +785,7 @@ evaluator::visit(const node &n, const assignment_statement &)
     auto res = visit(*n.children[1]);
     auto var = std::get<symbol>(n.children[0]->kind)._value;
     checkKeyword(var);
-    _symbol_table[var] = res;
+    stack_frame::lookup(var) = res;
     std::cerr << "Result: " << var << " = " << res << std::endl;
     return res;
 }
@@ -723,7 +803,7 @@ evaluator::visit(const node &n, const symbol &sym)
 {
     auto val = sym._value;
     checkKeyword(val);
-    return _symbol_table[sym._value];
+    return stack_frame::lookup(val);
 }
 
 int
