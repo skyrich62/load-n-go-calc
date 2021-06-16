@@ -771,10 +771,10 @@ evaluator::visit(const node &n, const if_statement &)
 }
 
 void
-checkKeyword(const std::string &val)
+checkKeyword(const std::string &name)
 {
-    if (val == "if" || val == "else") {
-        std::cerr << "Warning: keyword '" << val << "' used as symbol_name."
+    if (name == "if" || name == "else") {
+        std::cerr << "Warning: keyword '" << name << "' used as symbol_name."
                   << std::endl;
     }
 }
@@ -801,9 +801,9 @@ evaluator::visit(const node &n, const expression_statement &)
 int
 evaluator::visit(const node &n, const symbol &sym)
 {
-    auto val = sym._value;
-    checkKeyword(val);
-    return symbol_scope::lookup(val);
+    const auto &var = sym._value;
+    checkKeyword(var);
+    return symbol_scope::lookup(var);
 }
 
 int
