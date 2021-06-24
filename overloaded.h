@@ -23,43 +23,13 @@
  * Rich Newman
  */
 
-#include <tao/pegtl/contrib/trace.hpp>
-#include <tao/pegtl/contrib/parse_tree.hpp>
-#include <tao/pegtl/contrib/parse_tree_to_dot.hpp>
+#ifndef OVERLOAD_H_INCLUDED
+#define OVERLOAD_H_INCLUDED
 
+/// Useful for using lambda expressions in function overloads for use with
+/// std::visit.  See the example code here:
+///     https://en.cppreference.com/w/cpp/utility/variant/visit
+template< class... Ts > struct overloaded : Ts... { using Ts::operator()...; };
+template< class... Ts > overloaded(Ts...) -> overloaded<Ts...>;
 
-#include "grammar.h"
-#include "node.h"
-#include "evaluator.h"
-#include "selector.h"
-
-#include <iostream>
-
-int main(int argc, char *argv[])
-{
-     using namespace tao::pegtl;
-
-     if (argc == 1) {
-        std::cerr << "usage: calc <statements>\n";
-        return 1;
-     }
-     for (auto i = 1u; i < argc; ++i) {
-        try {
-            argv_input in(argv, i);
-            auto root = parse_tree::parse<Calc::grammar::grammar, Calc::Node::node, Calc::grammar::selector>(in);
-            if (root) {
-                std::cerr << "Parse successful." << std::endl;
-                print_dot(std::cout, *root);
-                Calc::evaluator eval;
-                eval.visit(*root);
-            } else {
-                std::cerr << "Parse fail." << std::endl;
-                return 1;
-            }
-        } catch (const std::exception &e) {
-            std::cerr << "Parse error: " << e.what() << std::endl;
-            return 5;
-        }
-    }
-    return 0;
-}
+#endif // OVERLOAD_H_INCLUDED
