@@ -24,8 +24,6 @@
  */
 
 #include "evaluator.h"
-#include "overloaded.h"
-
 #include <iostream>
 
 namespace Calc {
@@ -78,41 +76,7 @@ int
 evaluator::visit(const node &n, const node_kind &kind)
 {
     return
-      std::visit(overloaded {
-        [this, &n](const compound_statement &cs)   { return this->visit(n, cs); },
-        [this, &n](const if_statement& is)         { return this->visit(n, is); },
-        [this, &n](const assignment_statement& as) { return this->visit(n, as); },
-        [this, &n](const expression_statement& es) { return this->visit(n, es); },
-        [this, &n](const addition &add)            { return this->visit(n, add); },
-        [this, &n](const subtraction &sub)         { return this->visit(n, sub); },
-        [this, &n](const multiplication &mul)      { return this->visit(n, mul); },
-        [this, &n](const division &div)            { return this->visit(n, div); },
-        [this, &n](const modulus &div)             { return this->visit(n, div); },
-        [this, &n](const unary_minus &um)          { return this->visit(n, um); },
-        [this, &n](const unary_plus &up)           { return this->visit(n, up); },
-        [this, &n](const symbol &sym)              { return this->visit(n, sym); },
-        [this, &n](const number  &i)               { return this->visit(n, i); },
-        [this, &n](const function_call  &f)        { return this->visit(n, f); },
-        [this, &n](const greater_than &gt)         { return this->visit(n, gt);},
-        [this, &n](const greater_or_equal &ge)     { return this->visit(n, ge); },
-        [this, &n](const less_than &lt)            { return this->visit(n, lt); },
-        [this, &n](const less_or_equal &le)        { return this->visit(n, le); },
-        [this, &n](const equal_to &eq)             { return this->visit(n, eq); },
-        [this, &n](const not_equal &ne)            { return this->visit(n, ne); },
-        [this, &n](const logical_or &o)                    { return this->visit(n, o); },
-        [this, &n](const logical_or_else &oe)              { return this->visit(n, oe); },
-        [this, &n](const logical_and &a)                   { return this->visit(n, a); },
-        [this, &n](const logical_and_then &at)             { return this->visit(n, at); },
-        [this, &n](auto arg)
-        {
-            auto res = 0;
-            auto &c = n.children;
-            for (const auto &child: c) {
-                res = this->visit(*child);
-            }
-            return res;
-        }
-      }, kind);
+      std::visit([this, &n](const auto &arg) { return this->visit(n, arg); }, kind);
 }
 
 int
