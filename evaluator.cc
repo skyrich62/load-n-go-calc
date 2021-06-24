@@ -24,6 +24,7 @@
  */
 
 #include "evaluator.h"
+#include "overloaded.h"
 
 #include <iostream>
 

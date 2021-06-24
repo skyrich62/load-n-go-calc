@@ -28,8 +28,6 @@
 #define EVALUATOR_H_INCLUDED
 
 #include "node.h"
-#include "overloaded.h"
-
 #include <map>
 
 namespace Calc {
