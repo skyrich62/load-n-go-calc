@@ -15,7 +15,7 @@ PROGS = calc
 all: calc
 
 calc: $(OBJS) $(INCS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o calc
+	$(CXX) $(LXXFLAGS) $(OBJS) -o calc
 
 clean:
 	rm -rf *.o $(PROGS)
