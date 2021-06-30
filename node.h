@@ -94,8 +94,8 @@ using node_kind =
         division,             ///< Division:             x / y
         equal_to,             ///< Equal to              x = y
         not_equal,            ///< Not equal             x != y
-        greater_than,         ///< Greather than         x > y
-        greater_or_equal,     ///< Greator or equal      x >= y
+        greater_than,         ///< Greater than         x > y
+        greater_or_equal,     ///< Greater or equal      x >= y
         less_than,            ///< Less than             x < y
         less_or_equal,        ///< Less or equal         x <= y
         logical_and,                  ///< Logical logical_and           x and y
