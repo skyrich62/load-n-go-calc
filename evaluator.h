@@ -28,7 +28,7 @@
 #define EVALUATOR_H_INCLUDED
 
 #include "node.h"
-#include <map>
+#include "symbol_scope.h"
 
 namespace Calc {
 /// Evaluate the parse tree.
@@ -37,29 +37,6 @@ namespace Calc {
 class evaluator
 {
 public:
-    using Symbols = std::map<std::string, int>;
-    class symbol_scope
-    {
-    public:
-        /// Create a new stack frame and push it onto the stack.
-        symbol_scope();
-
-        /// Destroy a stack frame, pop it off the stack.
-        ~symbol_scope();
-
-        /// lookup a symbol name
-        /// @return a reference to the symbol, creating it in the current
-        /// stack frame if necessary.
-        static int& lookup(const std::string &name);
-
-        /// Add a new symbol to the current scope.
-        /// @param name the symbol to add.
-        static void add(const std::string &name);
-    private:
-        Symbols table_;
-        symbol_scope *previous_ = nullptr;
-        static symbol_scope *current_;
-    };
     evaluator() = default;
     evaluator(const evaluator &) = delete;
     evaluator(evaluator &&) = default;

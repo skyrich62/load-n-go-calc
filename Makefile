@@ -4,11 +4,12 @@ LXXFLAGS = -g
 
 INCS = \
     evaluator.h \
+    symbol_scope.h \
     grammar.h \
     node.h \
     overloaded.h
 
-OBJS = main.o evaluator.o
+OBJS = main.o evaluator.o symbol_scope.o
 
 PROGS = calc
 

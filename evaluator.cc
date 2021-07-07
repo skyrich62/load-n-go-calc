@@ -44,43 +44,6 @@ checkKeyword(const std::string &name)
     }
 }
 
-evaluator::symbol_scope* evaluator::symbol_scope::current_ = nullptr;
-
-evaluator::symbol_scope::symbol_scope()
-{
-    previous_ = current_;
-    current_ = this;
-}
-
-evaluator::symbol_scope::~symbol_scope()
-{
-    current_ = previous_;
-}
-
-int &
-evaluator::symbol_scope::lookup(const std::string &n)
-{
-    auto frame = current_;
-    while (frame) {
-        try {
-            return frame->table_.at(n);
-        } catch (const std::out_of_range &) {
-            frame = frame->previous_;
-        }
-    };
-    // If we got here, we can't find the symbol. Insert a new symbol in the
-    // current frame and return that value.
-    return current_->table_[n];
-}
-
-void
-evaluator::symbol_scope::add(const std::string &n)
-{
-    // Insert the new symbol or ignore this request if the symbol already
-    // exists at the current scope.
-    current_->table_[n];
-}
-
 int
 evaluator::visit(const node &n)
 {
