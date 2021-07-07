@@ -168,6 +168,9 @@ struct ORkw : keyword< 'o', 'r' > { };
 /// AND <- and !identifier_other
 struct ANDkw : keyword< 'a', 'n', 'd' > { };
 
+/// VAR <- var !identifier_other
+struct VAR : keyword< 'v', 'a', 'r' > { };
+
 /// AND <- ANDkw !(wsp THEN)
 struct AND : seq< ANDkw, not_at< wsp, THEN > > { };
 
@@ -181,13 +184,19 @@ struct OR : seq< ORkw, not_at< wsp, ELSE > > { };
 struct OR_ELSE : seq< ORkw, wsp, ELSE > { };
 
 /// keywords <- IF / ELSE
-struct keywords: sor< IF, ELSE, OR, THEN, AND > { };
+struct keywords: sor< IF, ELSE, OR, THEN, AND, VAR > { };
 
 /// logical_operator <- OR / AND / AND_THEN / OR_ELSE
 struct logical_operator : sor< AND_THEN, OR_ELSE, OR, AND > { };
 
-/// symbol_name <- !keywords  identifier
-struct symbol_name : seq< not_at< keywords >, identifier > { };
+/// non_kw_ident <- !keywords  identifier
+struct non_kw_ident : seq< not_at< keywords >, identifier > { };
+
+/// symbol_name <- non_kw_ident
+struct symbol_name : seq< non_kw_ident > { };
+
+/// block_id <- non_kw_ident
+struct block_id : seq< non_kw_ident > { };
 
 struct relation;
 struct expression;
@@ -242,25 +251,31 @@ struct if_statement :
         opt< wss, ELSE, wss, statement >
     > { };
 
-/// assignment_statement <- assignment
+/// assignment_statement <- assignment ';'
 struct assignment_statement : seq< assignment, wss, SEMI > { };
 
-/// expression_statement < expression
+/// expression_statement <- expression ';'
 struct expression_statement : seq< expression, wss, SEMI > { };
 
-struct statement;
+/// decl_statement <- VAR symbol_name ';'
+struct decl_statement : seq< VAR, wsp, symbol_name, wss, SEMI > { };
 
-/// simple_statement <- (assignment_statement / expression_statement / if_statement) SEMI
+/// simple_statement <- (decl_statement / assignment_statement / expression_statement / if_statement) SEMI
 struct simple_statement :
     sor<
+        decl_statement,
         if_statement,
         assignment_statement,
         expression_statement
     > { };
 
-/// compound_statement <- '{' statement* '}'
+/// block_name <- block_id COLON
+struct block_name : seq< block_id, wss, COLON, wss > { };
+
+/// compound_statement <- block_name? '{' statement* '}'
 struct compound_statement :
     seq<
+        opt< block_name >,
         LBRACE, wss,
         star< statement, wss >, wss,
         RBRACE

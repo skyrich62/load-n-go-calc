@@ -44,17 +44,18 @@ namespace Calc::Node {
 /// the number was parsed, "011" vs "9" for instance).
 struct number
 {
-    int _value;
+    int value_;
 };
 
 /// A node which holds a symbol.  Again, for now, this is only the name
 /// of the symbol, but other information could be placed here.
 struct symbol
 {
-    std::string _value;
+    std::string value_;
 };
 
 struct if_statement { };
+struct declaration { };
 struct compound_statement { };
 struct assignment_statement { };
 struct expression_statement { };
@@ -82,10 +83,11 @@ struct function_call { };
 using node_kind =
     std::variant <
         std::monostate,       ///< Placeholder.
+        declaration,          ///< declaration:          var x;
         if_statement,         ///< if statement:         if (x) stm;
         compound_statement,   ///< Compound statement:   { statement+ }
         assignment_statement, ///< Assignment statement: x:= 5;
-        expression_statement, ///< Expression statement: x;
+        expression_statement, ///< Expression statement: x * 2;
         number,               ///< Numeric literal:      42
         symbol,               ///< Symbol:               x
         subtraction,          ///< Subtraction:          x - 2
@@ -94,14 +96,14 @@ using node_kind =
         division,             ///< Division:             x / y
         equal_to,             ///< Equal to              x = y
         not_equal,            ///< Not equal             x != y
-        greater_than,         ///< Greater than         x > y
+        greater_than,         ///< Greater than          x > y
         greater_or_equal,     ///< Greater or equal      x >= y
         less_than,            ///< Less than             x < y
         less_or_equal,        ///< Less or equal         x <= y
-        logical_and,                  ///< Logical logical_and           x and y
-        logical_or,                   ///< Logical logical_or            x or y
-        logical_and_then,             ///< Logical logical_and THEN      x and then y
-        logical_or_else,              ///< Logical logical_or ELSE       x or else y
+        logical_and,          ///< Logical logical_and           x and y
+        logical_or,           ///< Logical logical_or            x or y
+        logical_and_then,     ///< Logical logical_and THEN      x and then y
+        logical_or_else,      ///< Logical logical_or ELSE       x or else y
         modulus,              ///< Modulus:              x % y
         unary_minus,          ///< Unary minus:          -x
         unary_plus,           ///< Unary plus:           +x

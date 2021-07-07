@@ -25,38 +25,60 @@
 
 #include "evaluator.h"
 #include <iostream>
+#include <set>
 
 namespace Calc {
 
 using namespace Calc::Node;
 
-evaluator::symbol_scope* evaluator::symbol_scope::_current = nullptr;
+void
+checkKeyword(const std::string &name)
+{
+    static std::set<std::string> keywords{
+        "if", "else", "and", "then", "or", "and", "var"
+    };
+
+    if (auto found = keywords.find(name); found != keywords.end())  {
+        std::cerr << "Warning: keyword '" << name << "' used as symbol_name."
+                  << std::endl;
+    }
+}
+
+evaluator::symbol_scope* evaluator::symbol_scope::current_ = nullptr;
 
 evaluator::symbol_scope::symbol_scope()
 {
-    _previous = _current;
-    _current = this;
+    previous_ = current_;
+    current_ = this;
 }
 
 evaluator::symbol_scope::~symbol_scope()
 {
-    _current = _previous;
+    current_ = previous_;
 }
 
 int &
 evaluator::symbol_scope::lookup(const std::string &n)
 {
-    auto frame = _current;
+    auto frame = current_;
     while (frame) {
         try {
-            return frame->_table.at(n);
+            return frame->table_.at(n);
         } catch (const std::out_of_range &) {
-            frame = frame->_previous;
+            frame = frame->previous_;
         }
     };
     // If we got here, we can't find the symbol. Insert a new symbol in the
     // current frame and return that value.
-    return _current->_table[n];
+    return current_->table_[n];
+}
+
+void
+evaluator::symbol_scope::add(const std::string &n)
+{
+    // Insert the new symbol or ignore this request if the symbol already
+    // exists at the current scope.
+    current_->table_[n];
 }
 
 int
@@ -77,6 +99,15 @@ evaluator::visit(const node &n, const node_kind &kind)
 {
     return
       std::visit([this, &n](const auto &arg) { return this->visit(n, arg); }, kind);
+}
+
+int
+evaluator::visit(const node &n, const declaration &)
+{
+    const auto var = std::get<symbol>(n.children[0]->kind_).value_;
+    checkKeyword(var);
+    symbol_scope::add(var);
+    return 0;
 }
 
 int
@@ -106,20 +137,11 @@ evaluator::visit(const node &n, const if_statement &)
     return 0;
 }
 
-void
-checkKeyword(const std::string &name)
-{
-    if (name == "if" || name == "else") {
-        std::cerr << "Warning: keyword '" << name << "' used as symbol_name."
-                  << std::endl;
-    }
-}
-
 int
 evaluator::visit(const node &n, const assignment_statement &)
 {
     auto res = visit(*n.children[1]);
-    auto var = std::get<symbol>(n.children[0]->kind_)._value;
+    auto var = std::get<symbol>(n.children[0]->kind_).value_;
     checkKeyword(var);
     symbol_scope::lookup(var) = res;
     std::cerr << "Result: " << var << " = " << res << std::endl;
@@ -137,7 +159,7 @@ evaluator::visit(const node &n, const expression_statement &)
 int
 evaluator::visit(const node &n, const symbol &sym)
 {
-    const auto &var = sym._value;
+    const auto &var = sym.value_;
     checkKeyword(var);
     return symbol_scope::lookup(var);
 }
@@ -145,7 +167,7 @@ evaluator::visit(const node &n, const symbol &sym)
 int
 evaluator::visit(const node &, const number &i)
 {
-    return i._value;
+    return i.value_;
 }
 
 int
@@ -318,7 +340,7 @@ int
 evaluator::visit(const node &n, const function_call &f)
 {
     auto operand = visit(*n.children[1]);
-    auto func = std::get<symbol>(n.children[0]->kind_)._value;
+    auto func = std::get<symbol>(n.children[0]->kind_).value_;
     if (func == "abs") {
         return abs(operand);
     } else if (func == "sgn") {

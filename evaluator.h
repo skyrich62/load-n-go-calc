@@ -51,10 +51,14 @@ public:
         /// @return a reference to the symbol, creating it in the current
         /// stack frame if necessary.
         static int& lookup(const std::string &name);
+
+        /// Add a new symbol to the current scope.
+        /// @param name the symbol to add.
+        static void add(const std::string &name);
     private:
-        Symbols _table;
-        symbol_scope *_previous = nullptr;
-        static symbol_scope *_current;
+        Symbols table_;
+        symbol_scope *previous_ = nullptr;
+        static symbol_scope *current_;
     };
     evaluator() = default;
     evaluator(const evaluator &) = delete;
@@ -69,6 +73,9 @@ public:
 
     /// Visit a node based on its kind.
     int visit(const Node::node &, const Node::node_kind &);
+
+    /// Visit a declaration
+    int visit(const Node::node &, const Node::declaration &);
 
     /// Visit an if statement.  Evaluate the expression, if the result it non-zero,
     /// evaluate the children.
