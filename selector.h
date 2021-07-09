@@ -116,7 +116,7 @@ struct assign_node_type : parse_tree::apply<assign_node_type>
         try_type<decl_statement, Node::declaration>(n)                ||
         try_type<OR, Node::logical_or>(n)                             ||
         try_type<AND, Node::logical_and>(n)                           ||
-        try_type<OR, Node::logical_or_else>(n)                        ||
+        try_type<OR_ELSE, Node::logical_or_else>(n)                   ||
         try_type<AND_THEN, Node::logical_and_then>(n)                 ||
         try_type<equal_to, Node::equal_to>(n)                         ||
         try_type<not_equal, Node::not_equal>(n)                       ||

@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
                 std::cerr << "Parse successful." << std::endl;
                 print_dot(std::cout, *root);
                 Calc::evaluator eval;
-                eval.visit(*root);
+                eval.accept(*root);
             } else {
                 std::cerr << "Parse fail." << std::endl;
                 return 1;
