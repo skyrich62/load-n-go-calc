@@ -30,23 +30,179 @@ namespace Calc {
 using namespace Calc::Node;
 
 int
-node_visitor::accept(const node &n)
+node_visitor::accept(node &n)
 {
     if (n.is_root()) {
         for (const auto &child : n.children) {
             accept(*child);
         }
     } else {
-        return visit(n, n.kind_);
+        return accept(n, n.kind_);
     }
     return 0;
 }
 
 int
-node_visitor::visit(const node &n, const node_kind &kind)
+node_visitor::accept(node &n, node_kind &kind)
 {
     return
-      std::visit([this, &n](const auto &arg) { return this->visit(n, arg); }, kind);
+      std::visit([this, &n](auto &arg) { return this->visit(n, arg); }, kind);
+}
+
+int
+node_visitor::visit(node &n, const std::monostate &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const declaration &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const compound_statement&)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const if_statement &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const assignment_statement &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const expression_statement &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const symbol &sym)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &, const number &i)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const unary_minus &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const unary_plus &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const multiplication &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const division &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const modulus &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const addition &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const subtraction &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const logical_or &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const logical_or_else &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const logical_and &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const logical_and_then &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const equal_to &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const not_equal &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const less_than &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const less_or_equal &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const greater_than &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const greater_or_equal &)
+{
+    return 0;
+}
+
+int
+node_visitor::visit(node &n, const function_call &f)
+{
+    return 0;
 }
 
 } // namespace Calc

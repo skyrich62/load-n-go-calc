@@ -82,7 +82,7 @@ struct function_call { };
 /// tree node.
 using node_kind =
     std::variant <
-        std::monostate,       ///< Placeholder.
+        std::monostate,       ///< Not classified yet.
         declaration,          ///< declaration:          var x;
         if_statement,         ///< if statement:         if (x) stm;
         compound_statement,   ///< Compound statement:   { statement+ }

@@ -45,7 +45,7 @@ checkKeyword(const std::string &name)
 }
 
 int
-evaluator::visit(const node &n, const declaration &)
+evaluator::visit(node &n, const declaration &)
 {
     const auto var = std::get<symbol>(n.children[0]->kind_).value_;
     checkKeyword(var);
@@ -54,7 +54,7 @@ evaluator::visit(const node &n, const declaration &)
 }
 
 int
-evaluator::visit(const node &n, const compound_statement&)
+evaluator::visit(node &n, const compound_statement&)
 {
     symbol_scope locals;
     auto res = 0;
@@ -66,9 +66,9 @@ evaluator::visit(const node &n, const compound_statement&)
 }
 
 int
-evaluator::visit(const node &n, const if_statement &)
+evaluator::visit(node &n, const if_statement &)
 {
-    const auto &cond = *n.children[0];
+    auto &cond = *n.children[0];
     auto res = accept(cond);
     if (res != 0) {
         accept(*n.children[1]);
@@ -81,7 +81,7 @@ evaluator::visit(const node &n, const if_statement &)
 }
 
 int
-evaluator::visit(const node &n, const assignment_statement &)
+evaluator::visit(node &n, const assignment_statement &)
 {
     auto res = accept(*n.children[1]);
     auto var = std::get<symbol>(n.children[0]->kind_).value_;
@@ -92,7 +92,7 @@ evaluator::visit(const node &n, const assignment_statement &)
 }
 
 int
-evaluator::visit(const node &n, const expression_statement &)
+evaluator::visit(node &n, const expression_statement &)
 {
     auto res = accept(*n.children[0]);
     std::cerr << "Result: " << res << std::endl;
@@ -100,7 +100,7 @@ evaluator::visit(const node &n, const expression_statement &)
 }
 
 int
-evaluator::visit(const node &n, const symbol &sym)
+evaluator::visit(node &n, const symbol &sym)
 {
     const auto &var = sym.value_;
     checkKeyword(var);
@@ -108,55 +108,55 @@ evaluator::visit(const node &n, const symbol &sym)
 }
 
 int
-evaluator::visit(const node &, const number &i)
+evaluator::visit(node &, const number &i)
 {
     return i.value_;
 }
 
 int
-evaluator::visit(const node &n, const unary_minus &)
+evaluator::visit(node &n, const unary_minus &)
 {
     return -1 * accept(*n.children[0]);
 }
 
 int
-evaluator::visit(const node &n, const unary_plus &)
+evaluator::visit(node &n, const unary_plus &)
 {
     return accept(*n.children[0]);
 }
 
 int
-evaluator::visit(const node &n, const multiplication &)
+evaluator::visit(node &n, const multiplication &)
 {
     return accept(*n.children[0]) * accept(*n.children[1]);
 }
 
 int
-evaluator::visit(const node &n, const division &)
+evaluator::visit(node &n, const division &)
 {
     return accept(*n.children[0]) / accept(*n.children[1]);
 }
 
 int
-evaluator::visit(const node &n, const modulus &)
+evaluator::visit(node &n, const modulus &)
 {
     return accept(*n.children[0]) % accept(*n.children[1]);
 }
 
 int
-evaluator::visit(const node &n, const addition &)
+evaluator::visit(node &n, const addition &)
 {
     return accept(*n.children[0]) + accept(*n.children[1]);
 }
 
 int
-evaluator::visit(const node &n, const subtraction &)
+evaluator::visit(node &n, const subtraction &)
 {
     return accept(*n.children[0]) - accept(*n.children[1]);
 }
 
 int
-evaluator::visit(const node &n, const logical_or &)
+evaluator::visit(node &n, const logical_or &)
 {
     auto lhs = accept(*n.children[0]);
     auto rhs = accept(*n.children[1]);
@@ -167,7 +167,7 @@ evaluator::visit(const node &n, const logical_or &)
 }
 
 int
-evaluator::visit(const node &n, const logical_or_else &)
+evaluator::visit(node &n, const logical_or_else &)
 {
     auto lhs = accept(*n.children[0]);
     if (lhs != 0) {
@@ -181,7 +181,7 @@ evaluator::visit(const node &n, const logical_or_else &)
 }
 
 int
-evaluator::visit(const node &n, const logical_and &)
+evaluator::visit(node &n, const logical_and &)
 {
     auto lhs = accept(*n.children[0]);
     auto rhs = accept(*n.children[1]);
@@ -192,7 +192,7 @@ evaluator::visit(const node &n, const logical_and &)
 }
 
 int
-evaluator::visit(const node &n, const logical_and_then &)
+evaluator::visit(node &n, const logical_and_then &)
 {
     auto lhs = accept(*n.children[0]);
     if (lhs == 0) {
@@ -206,7 +206,7 @@ evaluator::visit(const node &n, const logical_and_then &)
 }
 
 int
-evaluator::visit(const node &n, const equal_to &)
+evaluator::visit(node &n, const equal_to &)
 {
     auto lhs = accept(*n.children[0]);
     auto rhs = accept(*n.children[1]);
@@ -217,7 +217,7 @@ evaluator::visit(const node &n, const equal_to &)
 }
 
 int
-evaluator::visit(const node &n, const not_equal &)
+evaluator::visit(node &n, const not_equal &)
 {
     auto lhs = accept(*n.children[0]);
     auto rhs = accept(*n.children[1]);
@@ -228,7 +228,7 @@ evaluator::visit(const node &n, const not_equal &)
 }
 
 int
-evaluator::visit(const node &n, const less_than &)
+evaluator::visit(node &n, const less_than &)
 {
     auto lhs = accept(*n.children[0]);
     auto rhs = accept(*n.children[1]);
@@ -239,7 +239,7 @@ evaluator::visit(const node &n, const less_than &)
 }
 
 int
-evaluator::visit(const node &n, const less_or_equal &)
+evaluator::visit(node &n, const less_or_equal &)
 {
     auto lhs = accept(*n.children[0]);
     auto rhs = accept(*n.children[1]);
@@ -250,7 +250,7 @@ evaluator::visit(const node &n, const less_or_equal &)
 }
 
 int
-evaluator::visit(const node &n, const greater_than &)
+evaluator::visit(node &n, const greater_than &)
 {
     auto lhs = accept(*n.children[0]);
     auto rhs = accept(*n.children[1]);
@@ -261,7 +261,7 @@ evaluator::visit(const node &n, const greater_than &)
 }
 
 int
-evaluator::visit(const node &n, const greater_or_equal &)
+evaluator::visit(node &n, const greater_or_equal &)
 {
     auto lhs = accept(*n.children[0]);
     auto rhs = accept(*n.children[1]);
@@ -272,7 +272,7 @@ evaluator::visit(const node &n, const greater_or_equal &)
 }
 
 int
-evaluator::visit(const node &n, const function_call &f)
+evaluator::visit(node &n, const function_call &f)
 {
     auto operand = accept(*n.children[1]);
     auto func = std::get<symbol>(n.children[0]->kind_).value_;
