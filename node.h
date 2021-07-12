@@ -37,6 +37,8 @@ std::bool_constant< (std::is_same_v< T, Ts > || ...) >
 { };
 
 namespace Calc::Node {
+struct node;
+
 /// Define the members of the variant in the parse tree nodes.
 
 /// A node which holds a number, (integer).  For now, this only holds the
@@ -49,9 +51,14 @@ struct number
 
 /// A node which holds a symbol.  Again, for now, this is only the name
 /// of the symbol, but other information could be placed here.
-struct symbol
+struct variable
 {
-    std::string value_;
+    std::string name_;
+};
+
+struct variable_ref
+{
+    node *variable_;
 };
 
 struct if_statement { };
@@ -89,7 +96,8 @@ using node_kind =
         assignment_statement, ///< Assignment statement: x:= 5;
         expression_statement, ///< Expression statement: x * 2;
         number,               ///< Numeric literal:      42
-        symbol,               ///< Symbol:               x
+        variable,             ///< A variable name:      x
+        variable_ref,         ///< A reference to a variable name node.
         subtraction,          ///< Subtraction:          x - 2
         addition,             ///< Addition:             x + 5
         multiplication,       ///< Multiplication:       x * y

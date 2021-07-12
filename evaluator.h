@@ -133,7 +133,7 @@ public:
     /// Visit a symbol, (symbol_name), node.  Store the symbol name in the node,
     /// Return the value of the symbol from the symbol table.  If the symbol has
     /// never before been seen, set it's value to zero.
-    void visit(Node::node &, const Node::symbol &) override;
+    void visit(Node::node &, const Node::variable_ref &) override;
 
     /// Visit a number, (integer), node.  Store the binary value of the integer in
     /// the node.

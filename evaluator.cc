@@ -47,9 +47,8 @@ checkKeyword(const std::string &name)
 void
 evaluator::visit(node &n, const declaration &)
 {
-    const auto var = std::get<symbol>(n.children[0]->kind_).value_;
-    checkKeyword(var);
-    symbol_scope::add(var);
+    //const auto var = std::get<variable_ref>(n.children[0]->kind_).variable_;
+    //symbol_scope::add(var);
 }
 
 void
@@ -80,10 +79,10 @@ void
 evaluator::visit(node &n, const assignment_statement &)
 {
     accept(*n.children[1]);
-    auto var = std::get<symbol>(n.children[0]->kind_).value_;
-    checkKeyword(var);
-    symbol_scope::lookup(var) = result_;
-    std::cerr << "Result: " << var << " = " << result_ << std::endl;
+    //auto var = std::get<variable_ref>(n.children[0]->kind_).variable;
+    //checkKeyword(var);
+    //symbol_scope::lookup(var) = result_;
+    //std::cerr << "Result: " << var << " = " << result_ << std::endl;
 }
 
 void
@@ -94,11 +93,10 @@ evaluator::visit(node &n, const expression_statement &)
 }
 
 void
-evaluator::visit(node &n, const symbol &sym)
+evaluator::visit(node &n, const variable_ref &sym)
 {
-    const auto &var = sym.value_;
-    checkKeyword(var);
-    set_result(symbol_scope::lookup(var));
+    //const auto &var = sym.variable;
+    //set_result(symbol_scope::lookup(var));
 }
 
 void
@@ -321,9 +319,10 @@ evaluator::visit(node &n, const greater_or_equal &)
 void
 evaluator::visit(node &n, const function_call &f)
 {
+    /*
     accept(*n.children[1]);
     auto operand = result_;
-    auto func = std::get<symbol>(n.children[0]->kind_).value_;
+    auto func = std::get<variable_ref>(n.children[0]->kind_).variable;
     if (func == "abs") {
         set_result(abs(operand));
     } else if (func == "sgn") {
@@ -338,6 +337,7 @@ evaluator::visit(node &n, const function_call &f)
     }
     std::cerr << "Unknown function: " << func << " -- ignored.\n";
     set_result(operand);
+    */
 }
 
 } // namespace Calc

@@ -78,7 +78,12 @@ node_visitor::visit(node &n, const expression_statement &)
 }
 
 void
-node_visitor::visit(node &n, const symbol &sym)
+node_visitor::visit(node &n, const variable &sym)
+{
+}
+
+void
+node_visitor::visit(node &n, const variable_ref &sym)
 {
 }
 

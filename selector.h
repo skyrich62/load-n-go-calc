@@ -86,10 +86,10 @@ struct store_symbol : parse_tree::apply<store_symbol>
     template< typename... States>
     static void transform( Ptr &n, States&&... st)
     {
-        Node::symbol val;
-        val.value_ = n->string();
+        Node::variable val;
+        val.name_ = n->string();
         n->kind_ = val;
-        n->set_type<Node::symbol>();
+        n->set_type<Node::variable>();
     }
 };
 

@@ -135,10 +135,11 @@ public:
     /// Visit a unary_plus node.  Evaluate the operand, and return it.
     virtual void visit(Node::node &, const Node::unary_plus &);
 
-    /// Visit a symbol, (symbol_name), node.  Store the symbol name in the node,
-    /// Return the value of the symbol from the symbol table.  If the symbol has
-    /// never before been seen, set it's value to zero.
-    virtual void visit(Node::node &, const Node::symbol &);
+    /// Visit a variable, (name), node.
+    virtual void visit(Node::node &, const Node::variable &);
+
+    /// Visit a variable reference, node.
+    virtual void visit(Node::node &, const Node::variable_ref &);
 
     /// Visit a number, (integer), node.  Store the binary value of the integer in
     /// the node.
