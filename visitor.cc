@@ -53,6 +53,11 @@ node_visitor::visit(node &n, const std::monostate &)
 }
 
 void
+node_visitor::visit(node &n, const scope &)
+{
+}
+
+void
 node_visitor::visit(node &n, const declaration &)
 {
 }

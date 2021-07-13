@@ -84,12 +84,14 @@ struct modulus { };
 struct unary_plus { };
 struct unary_minus { };
 struct function_call { };
+struct scope { };
 
 /// The variant which will hold information specific to the type of parse
 /// tree node.
 using node_kind =
     std::variant <
         std::monostate,       ///< Not classified yet.
+        scope,                ///< Scope node.
         declaration,          ///< declaration:          var x;
         if_statement,         ///< if statement:         if (x) stm;
         compound_statement,   ///< Compound statement:   { statement+ }

@@ -51,6 +51,9 @@ public:
     /// Visit an unclassified node
     virtual void visit(Node::node &, const std::monostate &);
 
+    /// Visit a scope node.
+    virtual void visit(Node::node &, const Node::scope &);
+
     /// Visit a declaration
     virtual void visit(Node::node &, const Node::declaration &);
 
