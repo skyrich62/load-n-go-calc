@@ -32,19 +32,6 @@ namespace Calc {
 using namespace Calc::Node;
 
 void
-checkKeyword(const std::string &name)
-{
-    static std::set<std::string> keywords{
-        "if", "else", "and", "then", "or", "and", "var"
-    };
-
-    if (auto found = keywords.find(name); found != keywords.end())  {
-        std::cerr << "Warning: keyword '" << name << "' used as symbol_name."
-                  << std::endl;
-    }
-}
-
-void
 evaluator::visit(node &n, const declaration &)
 {
     //const auto var = std::get<variable_ref>(n.children[0]->kind_).variable_;
