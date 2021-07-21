@@ -23,45 +23,56 @@
  * Rich Newman
  */
 
-#include "symbol_scope.h"
+#include "semantic_analysis.h"
+#include <iostream>
+#include <set>
+
+#define SHOW // std::cerr << __PRETTY_FUNCTION__ << std::endl
 
 namespace Calc {
 
+using namespace Calc::Node;
 
-symbol_scope* symbol_scope::current_ = nullptr;
-
-symbol_scope::symbol_scope()
+void
+checkKeyword(const std::string &name)
 {
-    previous_ = current_;
-    current_ = this;
-}
-
-symbol_scope::~symbol_scope()
-{
-    current_ = previous_;
-}
-
-Node::node*
-symbol_scope::lookup(const std::string &n)
-{
-    auto frame = current_;
-    while (frame) {
-        try {
-            return frame->table_.at(n);
-        } catch (const std::out_of_range &) {
-            frame = frame->previous_;
-        }
+    static std::set<std::string> keywords{
+        "if", "else", "and", "then", "or", "and", "var"
     };
-    // If we got here, we can't find the symbol. Insert a new symbol in the
-    // current frame and return that value.
-    return add(n);
+
+    if (auto found = keywords.find(name); found != keywords.end())  {
+        std::cerr << "Warning: keyword '" << name << "' used as symbol_name."
+                  << std::endl;
+    }
 }
 
-Node::node*
-symbol_scope::add(const std::string &n, Node::node &p)
+void
+semantic_analysis::visit(node &n, const declaration &)
 {
-    current_->table_[n] = &p
-    return &p;
+    SHOW;
+    traversal_->disableSubTree();
+    auto &child = n.children[0];
+    auto &var = std::get<variable>(child->kind_).name_;
+    checkKeyword(var);
+    symbol_scope::add(var);
+}
+
+void
+semantic_analysis::visit(node &n, const compound_statement&)
+{
+    symbol_scope scope;
+    SHOW;
+}
+
+void
+semantic_analysis::visit(node &n, const variable &)
+{
+    SHOW;
+    auto &name = std::get<variable>(n.kind_).name_;
+    checkKeyword(name);
+    auto r = symbol_scope::lookup(name);
+    n.set_kind(variable_ref{r});
+    n.set_type<variable_ref>();
 }
 
 } // namespace Calc

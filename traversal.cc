@@ -23,45 +23,33 @@
  * Rich Newman
  */
 
-#include "symbol_scope.h"
+#include "traversal.h"
+#include "visitor.h"
 
 namespace Calc {
 
+using namespace Calc::Node;
 
-symbol_scope* symbol_scope::current_ = nullptr;
-
-symbol_scope::symbol_scope()
+traversal::traversal(node_visitor &visitor) :
+    visitor_(visitor)
 {
-    previous_ = current_;
-    current_ = this;
+    visitor.set_traversal(*this);
 }
 
-symbol_scope::~symbol_scope()
+void
+traversal::traverse(node &n)
 {
-    current_ = previous_;
-}
-
-Node::node*
-symbol_scope::lookup(const std::string &n)
-{
-    auto frame = current_;
-    while (frame) {
-        try {
-            return frame->table_.at(n);
-        } catch (const std::out_of_range &) {
-            frame = frame->previous_;
-        }
-    };
-    // If we got here, we can't find the symbol. Insert a new symbol in the
-    // current frame and return that value.
-    return add(n);
-}
-
-Node::node*
-symbol_scope::add(const std::string &n, Node::node &p)
-{
-    current_->table_[n] = &p
-    return &p;
+    if (stop_) {
+        return;
+    }
+    if (disable_) {
+        disable_ = false;
+        return;
+    }
+    for (const auto &child : n.children) {
+        visitor_.accept(*child);
+        traverse(*child);
+    }
 }
 
 } // namespace Calc

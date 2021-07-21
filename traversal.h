@@ -23,45 +23,46 @@
  * Rich Newman
  */
 
-#include "symbol_scope.h"
+
+#ifndef TRAVERSAL_H_INCLUDED
+#define TRAVERSAL_H_INCLUDED
+
+#include "node.h"
 
 namespace Calc {
+class node_visitor;
 
-
-symbol_scope* symbol_scope::current_ = nullptr;
-
-symbol_scope::symbol_scope()
+/// Visit the parse tree.
+class traversal
 {
-    previous_ = current_;
-    current_ = this;
-}
+public:
+    traversal(node_visitor &visitor);
 
-symbol_scope::~symbol_scope()
-{
-    current_ = previous_;
-}
+    traversal(const traversal &) = delete;
+    traversal(traversal &&) = default;
+    ~traversal() = default;
 
-Node::node*
-symbol_scope::lookup(const std::string &n)
-{
-    auto frame = current_;
-    while (frame) {
-        try {
-            return frame->table_.at(n);
-        } catch (const std::out_of_range &) {
-            frame = frame->previous_;
-        }
-    };
-    // If we got here, we can't find the symbol. Insert a new symbol in the
-    // current frame and return that value.
-    return add(n);
-}
+    traversal& operator=(const traversal &) = delete;
+    traversal& operator=(traversal &&) = default;
 
-Node::node*
-symbol_scope::add(const std::string &n, Node::node &p)
-{
-    current_->table_[n] = &p
-    return &p;
-}
+    /// Traverse a tree begining at the given node.
+    void traverse(Node::node&);
+
+    /// Disable traversal of the current sub-tree.
+    void disableSubTree()                   { disable_ = true; }
+
+    /// Stop the traversal.
+    void stop()                             { stop_ = true; }
+
+    /// Reset all traversal flags.
+    void reset()                            { stop_ = disable_ = false; }
+
+private:
+    node_visitor &visitor_;
+    bool         disable_{false};
+    bool         stop_{false};
+};
 
 } // namespace Calc
+
+#endif // TRAVERSAL_H_INCLUDED

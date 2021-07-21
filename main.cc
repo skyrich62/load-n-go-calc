@@ -31,7 +31,10 @@
 #include "grammar.h"
 #include "node.h"
 #include "evaluator.h"
+#include "traversal.h"
+#include "semantic_analysis.h"
 #include "selector.h"
+#include "dotter.h"
 
 #include <iostream>
 
@@ -49,9 +52,13 @@ int main(int argc, char *argv[])
             auto root = parse_tree::parse<Calc::grammar::grammar, Calc::Node::node, Calc::grammar::selector>(in);
             if (root) {
                 std::cerr << "Parse successful." << std::endl;
-                print_dot(std::cout, *root);
-                Calc::evaluator eval;
-                eval.accept(*root);
+                Calc::print_dot(std::cout, *root);
+                Calc::semantic_analysis sem;
+                Calc::traversal trav(sem);
+                trav.traverse(*root);
+                Calc::print_dot(std::cout, *root);
+                //Calc::evaluator eval;
+                //eval.accept(*root);
             } else {
                 std::cerr << "Parse fail." << std::endl;
                 return 1;

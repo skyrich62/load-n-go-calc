@@ -29,6 +29,8 @@
 
 #include "node.h"
 #include "visitor.h"
+#include "symbol_scope.h"
+#include "traversal.h"
 
 namespace Calc {
 /// Evaluate the parse tree.
@@ -52,9 +54,12 @@ public:
     void visit(Node::node &, const Node::compound_statement &) override;
 
     /// Visit a symbol node.
-    void visit(Node::node &, const Node::symbol &) override;
+    void visit(Node::node &, const Node::variable &) override;
 
+private:
+    symbol_scope scope_;
 };
+
 } // namespace Calc
 
 

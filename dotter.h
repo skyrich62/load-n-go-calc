@@ -23,45 +23,12 @@
  * Rich Newman
  */
 
-#include "symbol_scope.h"
+#include <ostream>
+#include "node.h"
 
 namespace Calc {
 
-
-symbol_scope* symbol_scope::current_ = nullptr;
-
-symbol_scope::symbol_scope()
-{
-    previous_ = current_;
-    current_ = this;
-}
-
-symbol_scope::~symbol_scope()
-{
-    current_ = previous_;
-}
-
-Node::node*
-symbol_scope::lookup(const std::string &n)
-{
-    auto frame = current_;
-    while (frame) {
-        try {
-            return frame->table_.at(n);
-        } catch (const std::out_of_range &) {
-            frame = frame->previous_;
-        }
-    };
-    // If we got here, we can't find the symbol. Insert a new symbol in the
-    // current frame and return that value.
-    return add(n);
-}
-
-Node::node*
-symbol_scope::add(const std::string &n, Node::node &p)
-{
-    current_->table_[n] = &p
-    return &p;
-}
+void
+print_dot(std::ostream &os, Node::node &n);
 
 } // namespace Calc

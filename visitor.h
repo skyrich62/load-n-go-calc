@@ -30,6 +30,8 @@
 #include "node.h"
 
 namespace Calc {
+class traversal;
+
 /// Visit the parse tree.
 class node_visitor
 {
@@ -156,6 +158,12 @@ public:
     ///  "abs" for absolute value.
     ///  "sgn" returns -1, 0, or 1, depending on the sign of the operand.
     virtual void visit(Node::node &, const Node::function_call &);
+
+    void set_traversal(traversal &trav)     { traversal_ = &trav; }
+
+protected:
+    traversal   *traversal_ = nullptr;
+
 };
 
 } // namespace Calc
