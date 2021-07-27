@@ -39,6 +39,11 @@ evaluator::visit(node &n, declaration &)
 }
 
 void
+evaluator::visit(node &n, root &)
+{
+}
+
+void
 evaluator::visit(node &n, variable &)
 {
 }

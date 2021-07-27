@@ -52,11 +52,12 @@ int main(int argc, char *argv[])
             auto root = parse_tree::parse<Calc::grammar::grammar, Calc::Node::node, Calc::grammar::selector>(in);
             if (root) {
                 std::cerr << "Parse successful." << std::endl;
+                root->set_kind<Calc::Node::root>({nullptr});
                 Calc::print_dot(std::cout, *root);
-                Calc::semantic_analysis sem;
-                Calc::traversal trav(sem);
-                trav.traverse(*root);
-                Calc::print_dot(std::cout, *root);
+                //Calc::semantic_analysis sem;
+                //Calc::traversal trav(sem);
+                //trav.traverse(*root);
+                //Calc::print_dot(std::cout, *root);
                 //Calc::evaluator eval;
                 //eval.accept(*root);
             } else {

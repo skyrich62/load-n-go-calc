@@ -46,8 +46,9 @@ traversal::traverse(node &n)
         disable_ = false;
         return;
     }
+    visitor_.accept(n);
     for (const auto &child : n.children) {
-        visitor_.accept(*child);
+        //visitor_.accept(*child);
         traverse(*child);
     }
 }

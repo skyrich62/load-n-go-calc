@@ -55,7 +55,11 @@ public:
     void stop()                             { stop_ = true; }
 
     /// Reset all traversal flags.
-    void reset()                            { stop_ = disable_ = false; }
+    void reset()
+    {
+        stop_ = false;
+        disable_ = false;
+    }
 
 private:
     node_visitor &visitor_;

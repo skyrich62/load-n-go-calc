@@ -49,11 +49,8 @@ public:
     /// Visit a node.
     void accept(Node::node&);
 
-    /// Visit a node based on its kind.
-    void accept(Node::node &, Node::node_kind &);
-
     /// Visit a monostate node
-    void visit(Node::node &, std::monostate &);
+    virtual void visit(Node::node &, std::monostate &);
 
 #define xx(a) virtual void visit(Node::node &, Node::a &);
 #define yy(a) xx(a)

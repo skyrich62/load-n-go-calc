@@ -39,12 +39,21 @@ public:
     dot_visitor(const dot_visitor &) = delete;
     dot_visitor& operator=(const dot_visitor &) = delete;
 
+    void visit(node &n, root &) override;
     void visit(node &n, variable_ref &) override;
     void visit(node &n, declaration &) override;
     void visit(node &n, variable &) override;
+    //void visit(node &n, std::monostate &) override;
+    void visit(node &n, assignment_statement &) override;
+    void visit(node &n, expression_statement &) override;
+    void visit(node &n, compound_statement &) override;
+    void visit(node &n, if_statement &) override;
+    void visit(node &n, number &) override;
     void print_node(node &n);
 
     void print_link(const node &from, const node &to, const std::string_view s);
+    void visit_scoped_node(node &n, Node::Ptr &p);
+    void visit_operation(node &n);
 
 private:
     std::ostream &os_;
@@ -53,8 +62,11 @@ private:
 void
 dot_visitor::print_link(const node &from, const node &to, const std::string_view s)
 {
-    os_ << "  x" << &from << " -> x" << &to
-        << " [label=\"" << s << "\"]\n";
+    os_ << "  x" << &from << " -> x" << &to;
+    if (!s.empty()) {
+        os_ << " [label=\"" << s << "\"]";
+    }
+    os_ << '\n';
 }
 
 void
@@ -69,6 +81,31 @@ dot_visitor::print_node(node &n)
         os_ << "\\\"";
     }
     os_ << "\" ]\n";
+}
+
+void
+dot_visitor::visit_scoped_node(node &n, Node::Ptr &scope)
+{
+    print_node(n);
+    if (scope) {
+        print_link(n, *scope, "scope");
+        /// @todo traverse the scope sub-tree
+    }
+    for (auto &child : n.children) {
+        print_link(n, *child, "statement");
+    }
+}
+
+void
+dot_visitor::visit(node &n, root &r)
+{
+    visit_scoped_node(n, r.scope_);
+}
+
+void
+dot_visitor::visit(node &n, compound_statement &s)
+{
+    visit_scoped_node(n, s.scope_);
 }
 
 void
@@ -89,6 +126,47 @@ void
 dot_visitor::visit(node &n, variable &)
 {
     print_node(n);
+}
+
+void
+dot_visitor::visit(node &n, number &)
+{
+    print_node(n);
+}
+
+void
+dot_visitor::visit(node &n, assignment_statement &)
+{
+    print_node(n);
+    print_link(n, *n.children[0], "variable");
+    print_link(n, *n.children[1], "expression");
+}
+
+void
+dot_visitor::visit(node &n, expression_statement &)
+{
+    print_node(n);
+    print_link(n, *n.children[0], "expression");
+}
+
+void
+dot_visitor::visit_operation(node &n)
+{
+    print_node(n);
+    print_link(n, *n.children[0], "lhs");
+    print_link(n, *n.children[1], "rhs");
+}
+
+void
+dot_visitor::visit(node &n, if_statement &s)
+{
+    print_node(n);
+    print_link(n, *n.children[0], "condition");
+    print_link(n, *n.children[1], "then_clause");
+    if (n.children.size() > 2) {
+        print_link(n, *n.children[2], "else_clause");
+    }
+
 }
 
 void

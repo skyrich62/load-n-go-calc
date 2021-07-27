@@ -28,12 +28,13 @@
 yy (number)
 yy (variable)
 yy (variable_ref)
+yy (compound_statement)
+yy (root)
 
 
 // Now the normal cases
 xx (if_statement)
 xx (declaration)
-xx (compound_statement)
 xx (assignment_statement)
 xx (expression_statement)
 xx (subtraction)

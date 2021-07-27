@@ -25,6 +25,8 @@
 
 #include "visitor.h"
 
+#include <iostream>
+
 namespace Calc {
 
 using namespace Calc::Node;
@@ -32,19 +34,12 @@ using namespace Calc::Node;
 void
 node_visitor::accept(node &n)
 {
-    if (n.is_root()) {
-        for (const auto &child : n.children) {
-            accept(*child);
-        }
-    } else {
-        accept(n, n.kind_);
-    }
-}
-
-void
-node_visitor::accept(node &n, node_kind &kind)
-{
-    std::visit([this, &n](auto &arg) { return this->visit(n, arg); }, kind);
+    auto &kind = n.kind_;
+    std::visit([this, &n](auto &arg)
+        {
+            //std::cout << "*** " << __PRETTY_FUNCTION__ << std::endl;
+            return this->visit(n, arg);
+        }, kind);
 }
 
 void

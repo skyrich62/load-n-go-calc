@@ -61,6 +61,16 @@ struct variable_ref
     node *variable_;
 };
 
+struct compound_statement
+{
+    std::unique_ptr<node> scope_;
+};
+
+struct root
+{
+    std::unique_ptr<node> scope_;
+};
+
 #define xx(a) struct a { };
 #define yy(a)
 #include "node_kind.def"
