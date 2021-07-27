@@ -32,14 +32,24 @@ namespace Calc {
 using namespace Calc::Node;
 
 void
-evaluator::visit(node &n, const declaration &)
+evaluator::visit(node &n, declaration &)
 {
     //const auto var = std::get<variable_ref>(n.children[0]->kind_).variable_;
     //symbol_scope::add(var);
 }
 
 void
-evaluator::visit(node &n, const compound_statement&)
+evaluator::visit(node &n, variable &)
+{
+}
+
+void
+evaluator::visit(node &n, scope &)
+{
+}
+
+void
+evaluator::visit(node &n, compound_statement&)
 {
     symbol_scope locals;
     auto &c = n.children;
@@ -49,7 +59,7 @@ evaluator::visit(node &n, const compound_statement&)
 }
 
 void
-evaluator::visit(node &n, const if_statement &)
+evaluator::visit(node &n, if_statement &)
 {
     auto &cond = *n.children[0];
     accept(cond);
@@ -63,7 +73,7 @@ evaluator::visit(node &n, const if_statement &)
 }
 
 void
-evaluator::visit(node &n, const assignment_statement &)
+evaluator::visit(node &n, assignment_statement &)
 {
     accept(*n.children[1]);
     //auto var = std::get<variable_ref>(n.children[0]->kind_).variable;
@@ -73,40 +83,40 @@ evaluator::visit(node &n, const assignment_statement &)
 }
 
 void
-evaluator::visit(node &n, const expression_statement &)
+evaluator::visit(node &n, expression_statement &)
 {
     accept(*n.children[0]);
     std::cerr << "Result: " << result_ << std::endl;
 }
 
 void
-evaluator::visit(node &n, const variable_ref &sym)
+evaluator::visit(node &n, variable_ref &sym)
 {
     //const auto &var = sym.variable;
     //set_result(symbol_scope::lookup(var));
 }
 
 void
-evaluator::visit(node &, const number &i)
+evaluator::visit(node &, number &i)
 {
     set_result(i.value_);
 }
 
 void
-evaluator::visit(node &n, const unary_minus &)
+evaluator::visit(node &n, unary_minus &)
 {
     accept(*n.children[0]);
     set_result(-1 * result_);
 }
 
 void
-evaluator::visit(node &n, const unary_plus &)
+evaluator::visit(node &n, unary_plus &)
 {
     accept(*n.children[0]);
 }
 
 void
-evaluator::visit(node &n, const multiplication &)
+evaluator::visit(node &n, multiplication &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -116,7 +126,7 @@ evaluator::visit(node &n, const multiplication &)
 }
 
 void
-evaluator::visit(node &n, const division &)
+evaluator::visit(node &n, division &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -126,7 +136,7 @@ evaluator::visit(node &n, const division &)
 }
 
 void
-evaluator::visit(node &n, const modulus &)
+evaluator::visit(node &n, modulus &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -136,7 +146,7 @@ evaluator::visit(node &n, const modulus &)
 }
 
 void
-evaluator::visit(node &n, const addition &)
+evaluator::visit(node &n, addition &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -146,7 +156,7 @@ evaluator::visit(node &n, const addition &)
 }
 
 void
-evaluator::visit(node &n, const subtraction &)
+evaluator::visit(node &n, subtraction &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -156,7 +166,7 @@ evaluator::visit(node &n, const subtraction &)
 }
 
 void
-evaluator::visit(node &n, const logical_or &)
+evaluator::visit(node &n, logical_or &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -170,7 +180,7 @@ evaluator::visit(node &n, const logical_or &)
 }
 
 void
-evaluator::visit(node &n, const logical_or_else &)
+evaluator::visit(node &n, logical_or_else &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -188,7 +198,7 @@ evaluator::visit(node &n, const logical_or_else &)
 }
 
 void
-evaluator::visit(node &n, const logical_and &)
+evaluator::visit(node &n, logical_and &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -202,7 +212,7 @@ evaluator::visit(node &n, const logical_and &)
 }
 
 void
-evaluator::visit(node &n, const logical_and_then &)
+evaluator::visit(node &n, logical_and_then &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -220,7 +230,7 @@ evaluator::visit(node &n, const logical_and_then &)
 }
 
 void
-evaluator::visit(node &n, const equal_to &)
+evaluator::visit(node &n, equal_to &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -234,7 +244,7 @@ evaluator::visit(node &n, const equal_to &)
 }
 
 void
-evaluator::visit(node &n, const not_equal &)
+evaluator::visit(node &n, not_equal &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -248,7 +258,7 @@ evaluator::visit(node &n, const not_equal &)
 }
 
 void
-evaluator::visit(node &n, const less_than &)
+evaluator::visit(node &n, less_than &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -262,7 +272,7 @@ evaluator::visit(node &n, const less_than &)
 }
 
 void
-evaluator::visit(node &n, const less_or_equal &)
+evaluator::visit(node &n, less_or_equal &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -276,7 +286,7 @@ evaluator::visit(node &n, const less_or_equal &)
 }
 
 void
-evaluator::visit(node &n, const greater_than &)
+evaluator::visit(node &n, greater_than &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -290,7 +300,7 @@ evaluator::visit(node &n, const greater_than &)
 }
 
 void
-evaluator::visit(node &n, const greater_or_equal &)
+evaluator::visit(node &n, greater_or_equal &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -304,7 +314,7 @@ evaluator::visit(node &n, const greater_or_equal &)
 }
 
 void
-evaluator::visit(node &n, const function_call &f)
+evaluator::visit(node &n, function_call &f)
 {
     /*
     accept(*n.children[1]);

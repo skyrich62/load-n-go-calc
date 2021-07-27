@@ -2,6 +2,9 @@ CXX = /usr/local/gcc-9.2.0/bin/g++
 CXXFLAGS = -g -I ../PEGTL/include -std=c++17
 LXXFLAGS = -g
 
+%.E: %.cc
+	$(CXX) $(CXXFLAGS) -E $< > $@
+
 INCS = \
     dotter.h \
     visitor.h \

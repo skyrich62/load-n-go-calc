@@ -39,9 +39,9 @@ public:
     dot_visitor(const dot_visitor &) = delete;
     dot_visitor& operator=(const dot_visitor &) = delete;
 
-    void visit(node &n, const variable_ref &) override;
-    void visit(node &n, const declaration &) override;
-    void visit(node &n, const variable &) override;
+    void visit(node &n, variable_ref &) override;
+    void visit(node &n, declaration &) override;
+    void visit(node &n, variable &) override;
     void print_node(node &n);
 
     void print_link(const node &from, const node &to, const std::string_view s);
@@ -72,21 +72,21 @@ dot_visitor::print_node(node &n)
 }
 
 void
-dot_visitor::visit(node &n, const variable_ref &r)
+dot_visitor::visit(node &n, variable_ref &r)
 {
     print_node(n);
     print_link(n, *r.variable_, "variable");
 }
 
 void
-dot_visitor::visit(node &n, const declaration &d)
+dot_visitor::visit(node &n, declaration &d)
 {
     print_node(n);
     print_link(n, *n.children[0], "variable");
 }
 
 void
-dot_visitor::visit(node &n, const variable &)
+dot_visitor::visit(node &n, variable &)
 {
     print_node(n);
 }

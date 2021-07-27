@@ -61,63 +61,23 @@ struct variable_ref
     node *variable_;
 };
 
-struct if_statement { };
-struct declaration { };
-struct compound_statement { };
-struct assignment_statement { };
-struct expression_statement { };
-struct subtraction { };
-struct addition { };
-struct multiplication { };
-struct division { };
-struct equal_to { };
-struct not_equal { };
-struct greater_than { };
-struct greater_or_equal { };
-struct less_than { };
-struct less_or_equal { };
-struct logical_and { };
-struct logical_or { };
-struct logical_and_then { };
-struct logical_or_else { };
-struct modulus { };
-struct unary_plus { };
-struct unary_minus { };
-struct function_call { };
-struct scope { };
+#define xx(a) struct a { };
+#define yy(a)
+#include "node_kind.def"
+#undef xx
+#undef yy
 
 /// The variant which will hold information specific to the type of parse
 /// tree node.
 using node_kind =
     std::variant <
         std::monostate,       ///< Not classified yet.
-        scope,                ///< Scope node.
-        declaration,          ///< declaration:          var x;
-        if_statement,         ///< if statement:         if (x) stm;
-        compound_statement,   ///< Compound statement:   { statement+ }
-        assignment_statement, ///< Assignment statement: x:= 5;
-        expression_statement, ///< Expression statement: x * 2;
-        number,               ///< Numeric literal:      42
-        variable,             ///< A variable name:      x
-        variable_ref,         ///< A reference to a variable name node.
-        subtraction,          ///< Subtraction:          x - 2
-        addition,             ///< Addition:             x + 5
-        multiplication,       ///< Multiplication:       x * y
-        division,             ///< Division:             x / y
-        equal_to,             ///< Equal to              x = y
-        not_equal,            ///< Not equal             x != y
-        greater_than,         ///< Greater than          x > y
-        greater_or_equal,     ///< Greater or equal      x >= y
-        less_than,            ///< Less than             x < y
-        less_or_equal,        ///< Less or equal         x <= y
-        logical_and,          ///< Logical logical_and           x and y
-        logical_or,           ///< Logical logical_or            x or y
-        logical_and_then,     ///< Logical logical_and THEN      x and then y
-        logical_or_else,      ///< Logical logical_or ELSE       x or else y
-        modulus,              ///< Modulus:              x % y
-        unary_minus,          ///< Unary minus:          -x
-        unary_plus,           ///< Unary plus:           +x
-        function_call         ///< Function call:        abs(x)
+#define xx(a) a,
+#define yy(a) xx(a)
+#include "node_kind.def"
+#undef xx
+#undef yy
+        std::monostate        ///< Terminate the variant type list.
     >;
 
 /// Parse tree node is the same as a PEGTL basic node, but adds

@@ -48,13 +48,13 @@ public:
     semantic_analysis& operator=(semantic_analysis &&) = default;
 
     /// Visit a declaration
-    void visit(Node::node &, const Node::declaration &) override;
+    void visit(Node::node &, Node::declaration &) override;
 
     /// Visit a compound statement.  Evaluate each statement.
-    void visit(Node::node &, const Node::compound_statement &) override;
+    void visit(Node::node &, Node::compound_statement &) override;
 
     /// Visit a symbol node.
-    void visit(Node::node &, const Node::variable &) override;
+    void visit(Node::node &, Node::variable &) override;
 
 private:
     symbol_scope scope_;

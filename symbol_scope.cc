@@ -54,13 +54,16 @@ symbol_scope::lookup(const std::string &n)
     };
     // If we got here, we can't find the symbol. Insert a new symbol in the
     // current frame and return that value.
-    return add(n);
+    // This is an implicit declaration.
+    // @todo fix this
+    // return add(n);
+    return nullptr;
 }
 
 Node::node*
 symbol_scope::add(const std::string &n, Node::node &p)
 {
-    current_->table_[n] = &p
+    current_->table_[n] = &p;
     return &p;
 }
 

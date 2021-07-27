@@ -23,51 +23,36 @@
  * Rich Newman
  */
 
+// Special cases first:
 
-#ifndef VISITOR_H_INCLUDED
-#define VISITOR_H_INCLUDED
+yy (number)
+yy (variable)
+yy (variable_ref)
 
-#include "node.h"
 
-namespace Calc {
-class traversal;
+// Now the normal cases
+xx (if_statement)
+xx (declaration)
+xx (compound_statement)
+xx (assignment_statement)
+xx (expression_statement)
+xx (subtraction)
+xx (addition)
+xx (multiplication)
+xx (division)
+xx (equal_to)
+xx (not_equal)
+xx (greater_than)
+xx (greater_or_equal)
+xx (less_than)
+xx (less_or_equal)
+xx (logical_and)
+xx (logical_or)
+xx (logical_and_then)
+xx (logical_or_else)
+xx (modulus)
+xx (unary_plus)
+xx (unary_minus)
+xx (function_call)
+xx (scope)
 
-/// Visit the parse tree.
-class node_visitor
-{
-public:
-    node_visitor() = default;
-    explicit node_visitor(traversal &trav) : traversal_(&trav) { }
-
-    node_visitor(const node_visitor &) = delete;
-    node_visitor(node_visitor &&) = default;
-    ~node_visitor() = default;
-
-    node_visitor& operator=(const node_visitor &) = delete;
-    node_visitor& operator=(node_visitor &&) = default;
-
-    /// Visit a node.
-    void accept(Node::node&);
-
-    /// Visit a node based on its kind.
-    void accept(Node::node &, Node::node_kind &);
-
-    /// Visit a monostate node
-    void visit(Node::node &, std::monostate &);
-
-#define xx(a) virtual void visit(Node::node &, Node::a &);
-#define yy(a) xx(a)
-#include "node_kind.def"
-#undef xx
-#undef yy
-
-    void set_traversal(traversal &trav)     { traversal_ = &trav; }
-
-protected:
-    traversal   *traversal_ = nullptr;
-
-};
-
-} // namespace Calc
-
-#endif // VISITOR_H_INCLUDED

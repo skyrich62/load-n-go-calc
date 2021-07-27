@@ -48,143 +48,14 @@ node_visitor::accept(node &n, node_kind &kind)
 }
 
 void
-node_visitor::visit(node &n, const std::monostate &)
+node_visitor::visit(node &, std::monostate &)
 {
 }
 
-void
-node_visitor::visit(node &n, const scope &)
-{
-}
-
-void
-node_visitor::visit(node &n, const declaration &)
-{
-}
-
-void
-node_visitor::visit(node &n, const compound_statement&)
-{
-}
-
-void
-node_visitor::visit(node &n, const if_statement &)
-{
-}
-
-void
-node_visitor::visit(node &n, const assignment_statement &)
-{
-}
-
-void
-node_visitor::visit(node &n, const expression_statement &)
-{
-}
-
-void
-node_visitor::visit(node &n, const variable &sym)
-{
-}
-
-void
-node_visitor::visit(node &n, const variable_ref &sym)
-{
-}
-
-void
-node_visitor::visit(node &, const number &i)
-{
-}
-
-void
-node_visitor::visit(node &n, const unary_minus &)
-{
-}
-
-void
-node_visitor::visit(node &n, const unary_plus &)
-{
-}
-
-void
-node_visitor::visit(node &n, const multiplication &)
-{
-}
-
-void
-node_visitor::visit(node &n, const division &)
-{
-}
-
-void
-node_visitor::visit(node &n, const modulus &)
-{
-}
-
-void
-node_visitor::visit(node &n, const addition &)
-{
-}
-
-void
-node_visitor::visit(node &n, const subtraction &)
-{
-}
-
-void
-node_visitor::visit(node &n, const logical_or &)
-{
-}
-
-void
-node_visitor::visit(node &n, const logical_or_else &)
-{
-}
-
-void
-node_visitor::visit(node &n, const logical_and &)
-{
-}
-
-void
-node_visitor::visit(node &n, const logical_and_then &)
-{
-}
-
-void
-node_visitor::visit(node &n, const equal_to &)
-{
-}
-
-void
-node_visitor::visit(node &n, const not_equal &)
-{
-}
-
-void
-node_visitor::visit(node &n, const less_than &)
-{
-}
-
-void
-node_visitor::visit(node &n, const less_or_equal &)
-{
-}
-
-void
-node_visitor::visit(node &n, const greater_than &)
-{
-}
-
-void
-node_visitor::visit(node &n, const greater_or_equal &)
-{
-}
-
-void
-node_visitor::visit(node &n, const function_call &f)
-{
-}
+#define xx(a)  void node_visitor::visit(node &n, a &) {  }
+#define yy(a) xx(a)
+#include "node_kind.def"
+#undef xx
+#undef yy
 
 } // namespace Calc

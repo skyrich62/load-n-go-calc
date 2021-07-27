@@ -47,25 +47,26 @@ checkKeyword(const std::string &name)
 }
 
 void
-semantic_analysis::visit(node &n, const declaration &)
+semantic_analysis::visit(node &n, declaration &)
 {
     SHOW;
     traversal_->disableSubTree();
     auto &child = n.children[0];
     auto &var = std::get<variable>(child->kind_).name_;
     checkKeyword(var);
-    symbol_scope::add(var);
+    // @todo create a scope node and deal with it.
+    symbol_scope::add(var, *child);
 }
 
 void
-semantic_analysis::visit(node &n, const compound_statement&)
+semantic_analysis::visit(node &n, compound_statement&)
 {
     symbol_scope scope;
     SHOW;
 }
 
 void
-semantic_analysis::visit(node &n, const variable &)
+semantic_analysis::visit(node &n, variable &)
 {
     SHOW;
     auto &name = std::get<variable>(n.kind_).name_;

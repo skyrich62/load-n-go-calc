@@ -46,107 +46,11 @@ public:
     evaluator& operator=(const evaluator &) = delete;
     evaluator& operator=(evaluator &&) = default;
 
-    /// Visit a declaration
-    void visit(Node::node &, const Node::declaration &) override;
-
-    /// Visit an if statement.  Evaluate the expression, if the result it non-zero,
-    /// evaluate the children.
-    void visit(Node::node &, const Node::if_statement &) override;
-
-    /// Visit an assignment statement.  Evaluate the RHS, and assign the result
-    /// to the given symbol_name, (LHS).
-    void visit(Node::node &, const Node::assignment_statement &) override;
-
-    /// Visit an expression statement.  Evaluate the expression and print the result.
-    void visit(Node::node &, const Node::expression_statement &) override;
-
-    /// Visit a compound statement.  Evaluate each statement.
-    void visit(Node::node &, const Node::compound_statement &) override;
-
-    /// Visit an addition node. Evalate the LHS, evaluate the RHS, add them together,
-    /// and return the result.
-    void visit(Node::node &, const Node::addition &) override;
-
-    /// Visit a subtraction node. Evaluate the LHS and RHS, subtract the
-    /// RHS from the LHS, return the result.
-    void visit(Node::node &, const Node::subtraction &) override;
-
-    /// Visit a multiplication node. Evalute the LHS and RHS, multiply them, return
-    /// the result.
-    void visit(Node::node &, const Node::multiplication &) override;
-
-    /// Visit a division node.  Evaluate the LHS and RHS, divide LHS by RHS.
-    void visit(Node::node &, const Node::division &) override;
-
-    /// Visit a modulus node.  Evaluate the LHS % RHS
-    void visit(Node::node &, const Node::modulus &) override;
-
-
-    /// Visit an equal_to node.  Evaluate LHS and RHS if they are equal,
-    /// return 1, else 0.
-    void visit(Node::node &, const Node::equal_to &) override;
-
-    /// Visit a not_equal_node.  Evaluate LHS and RHS if they are not equal,
-    /// return 1, else 0.
-    void visit(Node::node &, const Node::not_equal &) override;
-
-    /// Visit a greater_than node.  Evaluate LHS, and RHS, if LHS > RHS,
-    /// return 1, else 0.
-    void visit(Node::node &, const Node::greater_than &) override;
-
-    /// Visit a greater_or_equal node.  Evaluate LHS and RHS, if LHS >= RHS
-    /// return 1, else 0.
-    void visit(Node::node &, const Node::greater_or_equal &) override;
-
-    /// Visit a less_than node.  Evaluate LHS and RHS, if LHS < RHS return
-    /// 1 else 0.
-    void visit(Node::node &, const Node::less_than &) override;
-
-    /// Visit a less_or_equal node.  Evaluate LHS and RHS, if LHS <= RHS
-    /// return 1, else 0.
-    void visit(Node::node &, const Node::less_or_equal &) override;
-
-    /// Visit an logical_and node.  Evaluate LHS and RHS.
-    /// Return 1 if both are non-zero else 0.
-    void visit(Node::node &, const Node::logical_and &) override;
-
-    /// Visit an logical_and_then node.
-    /// Evaluate the LHS if it is non-zero evaluate the RHS, if that is also
-    /// non-zero return 1 else 0.
-    void visit(Node::node &, const Node::logical_and_then &) override;
-
-    /// Visit an logical_or node.
-    /// Evaluate the LHS and the RHS, return 1 if either is non-zero, else 0.
-    void visit(Node::node &, const Node::logical_or &) override;
-
-    /// Visit an logical_or_else node.
-    /// Visit the LHS, if it is non-zero, return 1.
-    /// Otherwise, visit the RHS and return 1 if it's non-zero, else return 0.
-    void visit(Node::node &, const Node::logical_or_else &) override;
-
-    /// Visit a unary_minus node. Evaluate the operand, negate it and return the result.
-    void visit(Node::node &, const Node::unary_minus &) override;
-
-    /// Visit a unary_plus node.  Evaluate the operand, and return it.
-    void visit(Node::node &, const Node::unary_plus &) override;
-
-    /// Visit a symbol, (symbol_name), node.  Store the symbol name in the node,
-    /// Return the value of the symbol from the symbol table.  If the symbol has
-    /// never before been seen, set it's value to zero.
-    void visit(Node::node &, const Node::variable_ref &) override;
-
-    /// Visit a number, (integer), node.  Store the binary value of the integer in
-    /// the node.
-    void visit(Node::node &, const Node::number &) override;
-
-    /// Visit a function_call node.  If the function is not known, return 0.
-    /// Otherwise, evaluate the operand expression, apply the function and return
-    /// the value.
-    /// @note
-    /// Currently, the only known functions are:
-    ///  "abs" for absolute value.
-    ///  "sgn" returns -1, 0, or 1, depending on the sign of the operand.
-    void visit(Node::node &, const Node::function_call &) override;
+#define xx(a) void visit(Node::node &, Node::a &) override;
+#define yy(a) xx(a)
+#include "node_kind.def"
+#undef xx
+#undef yy
 
     /// Set the result of the current evaluation.
     void set_result(int res)                { result_ = res; }
