@@ -51,22 +51,43 @@ public:
     void visit(node &n, number &) override;
     void print_node(node &n);
 
-    void print_link(const node &from, const node &to, const std::string_view s);
-    void visit_scoped_node(node &n, Node::Ptr &p);
-    void visit_operation(node &n);
 
 private:
     std::ostream &os_;
+
+    using LinkNames = std::vector<std::string>;
+
+    void print_link(const node &from, const node &to, const std::string_view s);
+    void visit_scoped_node(node &n, Node::Ptr &p);
+    void visit_operation(node &n);
+    void print_links(const node &n, const LinkNames &names);
+    void print_links(const node &n, std::string_view s);
 };
 
 void
-dot_visitor::print_link(const node &from, const node &to, const std::string_view s)
+dot_visitor::print_link(const node &from, const node &to, std::string_view s)
 {
     os_ << "  x" << &from << " -> x" << &to;
     if (!s.empty()) {
         os_ << " [label=\"" << s << "\"]";
     }
     os_ << '\n';
+}
+
+void
+dot_visitor::print_links(const node &n, const LinkNames &names)
+{
+    for (auto i = 0u; i < n.children.size(); ++i) {
+        print_link(n, *n.children[i], names[i]);
+    }
+}
+
+void
+dot_visitor::print_links(const node &n, std::string_view name)
+{
+    for (auto i = 0u; i < n.children.size(); ++i) {
+        print_link(n, *n.children[i], name);
+    }
 }
 
 void
@@ -91,9 +112,7 @@ dot_visitor::visit_scoped_node(node &n, Node::Ptr &scope)
         print_link(n, *scope, "scope");
         /// @todo traverse the scope sub-tree
     }
-    for (auto &child : n.children) {
-        print_link(n, *child, "statement");
-    }
+    print_links(n, "statement");
 }
 
 void
@@ -138,8 +157,8 @@ void
 dot_visitor::visit(node &n, assignment_statement &)
 {
     print_node(n);
-    print_link(n, *n.children[0], "variable");
-    print_link(n, *n.children[1], "expression");
+    LinkNames names{"variable", "expression"};
+    print_links(n, names);
 }
 
 void
@@ -153,20 +172,16 @@ void
 dot_visitor::visit_operation(node &n)
 {
     print_node(n);
-    print_link(n, *n.children[0], "lhs");
-    print_link(n, *n.children[1], "rhs");
+    LinkNames names{"lhs", "rhs"};
+    print_links(n, names);
 }
 
 void
 dot_visitor::visit(node &n, if_statement &s)
 {
     print_node(n);
-    print_link(n, *n.children[0], "condition");
-    print_link(n, *n.children[1], "then_clause");
-    if (n.children.size() > 2) {
-        print_link(n, *n.children[2], "else_clause");
-    }
-
+    LinkNames names{"condition", "then_clause", "else_clause"};
+    print_links(n, names);
 }
 
 void
