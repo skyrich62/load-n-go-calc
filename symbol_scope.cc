@@ -30,10 +30,13 @@ namespace Calc {
 
 symbol_scope* symbol_scope::current_ = nullptr;
 
-symbol_scope::symbol_scope()
+symbol_scope::symbol_scope(Node::parent &p) : parent_(p)
 {
     previous_ = current_;
     current_ = this;
+    scope_ = std::make_unique<Node::node>();
+    scope_ -> set_type<Node::scope>();
+    scope_ -> set_kind(Node::scope{ });
 }
 
 symbol_scope::~symbol_scope()

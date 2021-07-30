@@ -46,6 +46,11 @@ checkKeyword(const std::string &name)
     }
 }
 
+semantic_analysis::semantic_analysis(parent &p) :
+    scope_(p)
+{
+}
+
 void
 semantic_analysis::visit(node &n, declaration &)
 {
@@ -59,9 +64,9 @@ semantic_analysis::visit(node &n, declaration &)
 }
 
 void
-semantic_analysis::visit(node &n, compound_statement&)
+semantic_analysis::visit(node &n, compound_statement &c)
 {
-    symbol_scope scope;
+    symbol_scope scope(c);
     SHOW;
 }
 

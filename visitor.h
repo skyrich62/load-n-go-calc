@@ -52,8 +52,7 @@ public:
     /// Visit a monostate node
     virtual void visit(Node::node &, std::monostate &);
 
-#define xx(a) virtual void visit(Node::node &, Node::a &);
-#define yy(a) xx(a)
+#define xx(a, b) virtual void visit(Node::node &, Node::a &);
 #include "node_kind.def"
 #undef xx
 #undef yy

@@ -28,7 +28,6 @@
 #define EVALUATOR_H_INCLUDED
 
 #include "node.h"
-#include "symbol_scope.h"
 #include "visitor.h"
 
 namespace Calc {
@@ -46,8 +45,7 @@ public:
     evaluator& operator=(const evaluator &) = delete;
     evaluator& operator=(evaluator &&) = default;
 
-#define xx(a) void visit(Node::node &, Node::a &) override;
-#define yy(a) xx(a)
+#define xx(a, b) void visit(Node::node &, Node::a &) override;
 #include "node_kind.def"
 #undef xx
 #undef yy
@@ -56,7 +54,6 @@ public:
     void set_result(int res)                { result_ = res; }
 
 private:
-    symbol_scope globals_;
     int          result_{0};
 };
 } // namespace Calc

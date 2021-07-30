@@ -38,7 +38,7 @@ public:
     using Symbols = std::map<std::string, Node::node *>;
 
     /// Create a new stack frame and push it onto the stack.
-    symbol_scope();
+    symbol_scope(Node::parent &p);
 
     /// Destroy a stack frame, pop it off the stack.
     ~symbol_scope();
@@ -60,7 +60,9 @@ public:
 private:
     Symbols             table_;
     std::string         name_;
+    Node::Ptr           scope_;
     symbol_scope        *previous_ = nullptr;
+    Node::parent        &parent_;
     static symbol_scope *current_;
 };
 

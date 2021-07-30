@@ -41,38 +41,14 @@ struct node;
 
 /// Define the members of the variant in the parse tree nodes.
 
-/// A node which holds a number, (integer).  For now, this only holds the
-/// value, but can be modified to hold addtional information, ( e.g. how
-/// the number was parsed, "011" vs "9" for instance).
-struct number
-{
-    int value_;
-};
-
-/// A node which holds a symbol.  Again, for now, this is only the name
-/// of the symbol, but other information could be placed here.
-struct variable
-{
-    std::string name_;
-};
-
-struct variable_ref
-{
-    node *variable_;
-};
-
-struct compound_statement
+struct parent
 {
     std::unique_ptr<node> scope_;
 };
 
-struct root
-{
-    std::unique_ptr<node> scope_;
-};
+struct operation{ };
 
-#define xx(a) struct a { };
-#define yy(a)
+#define xx(a, b) struct a b;
 #include "node_kind.def"
 #undef xx
 #undef yy
@@ -82,8 +58,7 @@ struct root
 using node_kind =
     std::variant <
         std::monostate,       ///< Not classified yet.
-#define xx(a) a,
-#define yy(a) xx(a)
+#define xx(a, b) a,
 #include "node_kind.def"
 #undef xx
 #undef yy

@@ -56,7 +56,6 @@ evaluator::visit(node &n, scope &)
 void
 evaluator::visit(node &n, compound_statement&)
 {
-    symbol_scope locals;
     auto &c = n.children;
     for (const auto &child : c) {
         this->accept(*child);

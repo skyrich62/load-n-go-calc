@@ -47,8 +47,7 @@ node_visitor::visit(node &, std::monostate &)
 {
 }
 
-#define xx(a)  void node_visitor::visit(node &n, a &) {  }
-#define yy(a) xx(a)
+#define xx(a, b)  void node_visitor::visit(node &n, a &) {  }
 #include "node_kind.def"
 #undef xx
 #undef yy

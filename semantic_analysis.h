@@ -39,7 +39,8 @@ namespace Calc {
 class semantic_analysis : public node_visitor
 {
 public:
-    semantic_analysis() = default;
+    explicit semantic_analysis(Node::parent &p);
+    semantic_analysis() = delete;
     semantic_analysis(const semantic_analysis &) = delete;
     semantic_analysis(semantic_analysis &&) = default;
     ~semantic_analysis() = default;
