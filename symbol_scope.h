@@ -53,10 +53,10 @@ public:
 
     /// Add a new symbol to the current scope.
     /// @param name the symbol to add.
-    /// @param p the node which declares the variable.
-    /// @return A pointer to the new variable node created.
+    /// @param var the node which declares the variable.
     /// Creates a new variable node, and adds it to the current scope.
-    static Node::node* add(const std::string &name, Node::node &p);
+    /// Changes var to be a variable reference instead.
+    static void add(const std::string &name, Node::node &var);
 private:
     Symbols             table_;
     std::string         name_;

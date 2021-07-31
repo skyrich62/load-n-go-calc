@@ -59,7 +59,6 @@ semantic_analysis::visit(node &n, declaration &)
     auto &child = n.children[0];
     auto &var = std::get<variable>(child->kind_).name_;
     checkKeyword(var);
-    // @todo create a scope node and deal with it.
     symbol_scope::add(var, *child);
 }
 

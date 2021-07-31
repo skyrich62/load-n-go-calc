@@ -41,6 +41,9 @@ symbol_scope::symbol_scope(Node::parent &p) : parent_(p)
 
 symbol_scope::~symbol_scope()
 {
+    if (!scope_->children.empty()) {
+        parent_.scope_ = std::move(scope_);
+    }
     current_ = previous_;
 }
 
@@ -63,11 +66,21 @@ symbol_scope::lookup(const std::string &n)
     return nullptr;
 }
 
-Node::node*
-symbol_scope::add(const std::string &n, Node::node &p)
+void
+symbol_scope::add(const std::string &name, Node::node &var)
 {
-    current_->table_[n] = &p;
-    return &p;
+    current_->table_[name] = &var;
+
+    auto node = std::make_unique<Node::node>();
+    node->m_begin = var.m_begin;
+    node->m_end   = var.m_end;
+    node->set_kind(Node::variable{name});
+    node->set_type<Node::variable>();
+
+    var.set_kind(Node::variable_ref{ node.get() });
+    var.set_type<Node::variable_ref>( );
+    var.remove_content();
+    current_->scope_->children.emplace_back(std::move(node));
 }
 
 } // namespace Calc

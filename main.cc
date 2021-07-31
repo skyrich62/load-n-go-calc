@@ -54,10 +54,12 @@ int main(int argc, char *argv[])
                 std::cerr << "Parse successful." << std::endl;
                 root->set_kind<Calc::Node::root>({nullptr});
                 Calc::print_dot(std::cout, *root);
-                //Calc::semantic_analysis sem;
-                //Calc::traversal trav(sem);
-                //trav.traverse(*root);
-                //Calc::print_dot(std::cout, *root);
+                {
+                    Calc::semantic_analysis sem(std::get<Calc::Node::root>(root->kind_));
+                    Calc::traversal trav(sem);
+                    trav.traverse(*root);
+                }
+                Calc::print_dot(std::cout, *root);
                 //Calc::evaluator eval;
                 //eval.accept(*root);
             } else {

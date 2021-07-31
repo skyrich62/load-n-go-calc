@@ -49,6 +49,7 @@ public:
     void visit(node &n, compound_statement &) override;
     void visit(node &n, if_statement &) override;
     void visit(node &n, number &) override;
+    void visit(node &n, scope &) override;
     void print_node(node &n);
 
 
@@ -58,7 +59,6 @@ private:
     using LinkNames = std::vector<std::string>;
 
     void print_link(const node &from, const node &to, const std::string_view s);
-    void visit_scoped_node(node &n, Node::Ptr &p);
     void visit_operation(node &n);
     void print_links(const node &n, const LinkNames &names);
     void print_links(const node &n, std::string_view s);
@@ -105,26 +105,24 @@ dot_visitor::print_node(node &n)
 }
 
 void
-dot_visitor::visit_scoped_node(node &n, Node::Ptr &scope)
-{
-    print_node(n);
-    if (scope) {
-        print_link(n, *scope, "scope");
-        /// @todo traverse the scope sub-tree
-    }
-    print_links(n, "statement");
-}
-
-void
 dot_visitor::visit(node &n, root &r)
 {
-    visit_scoped_node(n, r.scope_);
+    print_node(n);
+    print_links(n, "statement");
+    if (r.scope_) {
+        accept(*r.scope_);
+        print_link(n, *r.scope_, "scope");
+    }
 }
 
 void
 dot_visitor::visit(node &n, compound_statement &s)
 {
-    visit_scoped_node(n, s.scope_);
+    print_node(n);
+    print_links(n, "statement");
+    if (s.scope_) {
+        accept(*s.scope_);
+    }
 }
 
 void
@@ -132,6 +130,16 @@ dot_visitor::visit(node &n, variable_ref &r)
 {
     print_node(n);
     print_link(n, *r.variable_, "variable");
+}
+
+void
+dot_visitor::visit(node &n, scope &s)
+{
+    print_node(n);
+    print_links(n, "variable");
+    for (auto &var : n.children) {
+        accept(*var);
+    }
 }
 
 void
