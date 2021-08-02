@@ -56,7 +56,7 @@ public:
     /// @param var the node which declares the variable.
     /// Creates a new variable node, and adds it to the current scope.
     /// Changes var to be a variable reference instead.
-    static void add(const std::string &name, Node::node &var);
+    static void add(std::string name, Node::node &var);
 private:
     Symbols             table_;
     std::string         name_;

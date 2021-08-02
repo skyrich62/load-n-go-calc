@@ -48,28 +48,31 @@ symbol_scope::~symbol_scope()
 }
 
 Node::node*
-symbol_scope::lookup(const std::string &n)
+symbol_scope::lookup(const std::string &name)
 {
     auto frame = current_;
     while (frame) {
         try {
-            return frame->table_.at(n);
+            return frame->table_.at(name);
         } catch (const std::out_of_range &) {
             frame = frame->previous_;
         }
     };
     // If we got here, we can't find the symbol. Insert a new symbol in the
-    // current frame and return that value.
+    // current frame, add it to the current scope, and return that value.
     // This is an implicit declaration.
-    // @todo fix this
-    // return add(n);
-    return nullptr;
+    auto node = std::make_unique<Node::node>();
+    auto ptr = node.get();
+    node->set_kind(Node::variable{name});
+    node->set_type<Node::variable>();
+    current_->table_[name] = node.get();
+    current_->scope_->children.emplace_back(std::move(node));
+    return ptr;
 }
 
 void
-symbol_scope::add(const std::string &name, Node::node &var)
+symbol_scope::add(std::string name, Node::node &var)
 {
-    current_->table_[name] = &var;
 
     auto node = std::make_unique<Node::node>();
     node->m_begin = var.m_begin;
@@ -80,6 +83,7 @@ symbol_scope::add(const std::string &name, Node::node &var)
     var.set_kind(Node::variable_ref{ node.get() });
     var.set_type<Node::variable_ref>( );
     var.remove_content();
+    current_->table_[name] = node.get();
     current_->scope_->children.emplace_back(std::move(node));
 }
 

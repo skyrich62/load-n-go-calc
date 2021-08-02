@@ -78,6 +78,7 @@ semantic_analysis::visit(node &n, variable &)
     auto r = symbol_scope::lookup(name);
     n.set_kind(variable_ref{r});
     n.set_type<variable_ref>();
+    n.remove_content();
 }
 
 } // namespace Calc
