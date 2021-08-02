@@ -86,10 +86,10 @@ struct store_symbol : parse_tree::apply<store_symbol>
     template< typename... States>
     static void transform( Ptr &n, States&&... st)
     {
-        Node::symbol val;
-        val.value_ = n->string();
+        Node::variable val;
+        val.name_ = n->string();
         n->kind_ = val;
-        n->set_type<Node::symbol>();
+        n->set_type<Node::variable>();
     }
 };
 
@@ -114,6 +114,11 @@ struct assign_node_type : parse_tree::apply<assign_node_type>
     static void transform( Ptr &n, States&&... st)
     {
         try_type<decl_statement, Node::declaration>(n)                ||
+        try_type<expression_statement, Node::expression_statement>(n) ||
+        try_type<if_statement, Node::if_statement>(n)                 ||
+        try_type<assignment_statement, Node::assignment_statement>(n) ||
+        try_type<compound_statement, Node::compound_statement>(n)     ||
+
         try_type<OR, Node::logical_or>(n)                             ||
         try_type<AND, Node::logical_and>(n)                           ||
         try_type<OR_ELSE, Node::logical_or_else>(n)                   ||
@@ -125,10 +130,6 @@ struct assign_node_type : parse_tree::apply<assign_node_type>
         try_type<less_than, Node::less_than>(n)                       ||
         try_type<less_or_equal, Node::less_or_equal>(n)               ||
         try_type<function_call, Node::function_call>(n)               ||
-        try_type<if_statement, Node::if_statement>(n)                 ||
-        try_type<assignment_statement, Node::assignment_statement>(n) ||
-        try_type<compound_statement, Node::compound_statement>(n)     ||
-        try_type<expression_statement, Node::expression_statement>(n) ||
         try_type<addition, Node::addition>(n)                         ||
         try_type<subtraction,  Node::subtraction>(n)                  ||
         try_type<multiplication, Node::multiplication>(n)             ||

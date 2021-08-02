@@ -24,44 +24,49 @@
  */
 
 
-#ifndef EVALUATOR_H_INCLUDED
-#define EVALUATOR_H_INCLUDED
+#ifndef TRAVERSAL_H_INCLUDED
+#define TRAVERSAL_H_INCLUDED
 
 #include "node.h"
-#include "visitor.h"
-
-#include <map>
 
 namespace Calc {
-/// Evaluate the parse tree.
-/// Once the parse has completed, traverse the parse tree evaluating the nodes to
-/// produce a result.
-class evaluator : public node_visitor
+class node_visitor;
+
+/// Visit the parse tree.
+class traversal
 {
 public:
-    evaluator() = default;
-    evaluator(const evaluator &) = delete;
-    evaluator(evaluator &&) = default;
-    ~evaluator() = default;
+    traversal(node_visitor &visitor);
 
-    evaluator& operator=(const evaluator &) = delete;
-    evaluator& operator=(evaluator &&) = default;
+    traversal(const traversal &) = delete;
+    traversal(traversal &&) = default;
+    ~traversal() = default;
 
-#define xx(a, b) void visit(Node::node &, Node::a &) override;
-#include "node_kind.def"
-#undef xx
-#undef yy
+    traversal& operator=(const traversal &) = delete;
+    traversal& operator=(traversal &&) = default;
 
-    /// Set the result of the current evaluation.
-    void set_result(int res)                { result_ = res; }
+    /// Traverse a tree begining at the given node.
+    void traverse(Node::node&);
+
+    /// Disable traversal of the current sub-tree.
+    void disableSubTree()                   { disable_ = true; }
+
+    /// Stop the traversal.
+    void stop()                             { stop_ = true; }
+
+    /// Reset all traversal flags.
+    void reset()
+    {
+        stop_ = false;
+        disable_ = false;
+    }
 
 private:
-    using ValueMap = std::map<Node::node*, int>;
-    ValueMap values_;
-    int      result_{0};
-
+    node_visitor &visitor_;
+    bool         disable_{false};
+    bool         stop_{false};
 };
+
 } // namespace Calc
 
-
-#endif // EVALUATOR_H_INCLUDED
+#endif // TRAVERSAL_H_INCLUDED

@@ -23,45 +23,32 @@
  * Rich Newman
  */
 
+xx (number, { int  value_; } )
+xx (variable_ref, { node *variable_; } )
+xx (compound_statement, : public parent { } )
+xx (root, : public parent { })
+xx (scope, { })
+xx (variable, { std::string name_; })
+xx (if_statement, { })
+xx (declaration, { })
+xx (assignment_statement, { })
+xx (expression_statement, { })
+xx (subtraction, : public operation { })
+xx (addition, : public operation { })
+xx (multiplication, : public operation { })
+xx (division, : public operation { })
+xx (equal_to, : public operation { })
+xx (not_equal, : public operation { })
+xx (greater_than, : public operation { })
+xx (greater_or_equal, : public operation { })
+xx (less_than, : public operation { })
+xx (less_or_equal, : public operation { })
+xx (logical_and, : public operation { })
+xx (logical_or, : public operation { })
+xx (logical_and_then, : public operation { })
+xx (logical_or_else, : public operation { })
+xx (modulus, : public operation { })
+xx (unary_plus, : public operation { })
+xx (unary_minus, : public operation { })
+xx (function_call, : public operation { })
 
-#ifndef EVALUATOR_H_INCLUDED
-#define EVALUATOR_H_INCLUDED
-
-#include "node.h"
-#include "visitor.h"
-
-#include <map>
-
-namespace Calc {
-/// Evaluate the parse tree.
-/// Once the parse has completed, traverse the parse tree evaluating the nodes to
-/// produce a result.
-class evaluator : public node_visitor
-{
-public:
-    evaluator() = default;
-    evaluator(const evaluator &) = delete;
-    evaluator(evaluator &&) = default;
-    ~evaluator() = default;
-
-    evaluator& operator=(const evaluator &) = delete;
-    evaluator& operator=(evaluator &&) = default;
-
-#define xx(a, b) void visit(Node::node &, Node::a &) override;
-#include "node_kind.def"
-#undef xx
-#undef yy
-
-    /// Set the result of the current evaluation.
-    void set_result(int res)                { result_ = res; }
-
-private:
-    using ValueMap = std::map<Node::node*, int>;
-    ValueMap values_;
-    int      result_{0};
-
-};
-} // namespace Calc
-
-
-#endif // EVALUATOR_H_INCLUDED

@@ -28,31 +28,41 @@
 #define SYMBOL_SCOPE_H_INCLUDED
 
 #include <map>
+#include "node.h"
 
 namespace Calc {
 
 class symbol_scope
 {
 public:
-    using Symbols = std::map<std::string, int>;
+    using Symbols = std::map<std::string, Node::node *>;
 
     /// Create a new stack frame and push it onto the stack.
-    symbol_scope();
+    symbol_scope(Node::parent &p);
 
     /// Destroy a stack frame, pop it off the stack.
     ~symbol_scope();
 
+    /// Set the name of the current scope
+    void name(const std::string &n)         { name_ = n; }
+
     /// lookup a symbol name
     /// @return a reference to the symbol, creating it in the current
     /// stack frame if necessary.
-    static int& lookup(const std::string &name);
+    static Node::node* lookup(const std::string &name);
 
     /// Add a new symbol to the current scope.
     /// @param name the symbol to add.
-    static void add(const std::string &name);
+    /// @param var the node which declares the variable.
+    /// Creates a new variable node, and adds it to the current scope.
+    /// Changes var to be a variable reference instead.
+    static void add(std::string name, Node::node &var);
 private:
-    Symbols table_;
-    symbol_scope *previous_ = nullptr;
+    Symbols             table_;
+    std::string         name_;
+    Node::Ptr           scope_;
+    symbol_scope        *previous_ = nullptr;
+    Node::parent        &parent_;
     static symbol_scope *current_;
 };
 

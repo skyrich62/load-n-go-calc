@@ -23,33 +23,62 @@
  * Rich Newman
  */
 
-#include "visitor.h"
-
+#include "semantic_analysis.h"
 #include <iostream>
+#include <set>
+
+#define SHOW // std::cerr << __PRETTY_FUNCTION__ << std::endl
 
 namespace Calc {
 
 using namespace Calc::Node;
 
 void
-node_visitor::accept(node &n)
+checkKeyword(const std::string &name)
 {
-    auto &kind = n.kind_;
-    std::visit([this, &n](auto &arg)
-        {
-            //std::cout << "*** " << __PRETTY_FUNCTION__ << std::endl;
-            return this->visit(n, arg);
-        }, kind);
+    static std::set<std::string> keywords{
+        "if", "else", "and", "then", "or", "and", "var"
+    };
+
+    if (auto found = keywords.find(name); found != keywords.end())  {
+        std::cerr << "Warning: keyword '" << name << "' used as symbol_name."
+                  << std::endl;
+    }
+}
+
+semantic_analysis::semantic_analysis(parent &p) :
+    scope_(p)
+{
 }
 
 void
-node_visitor::visit(node &, std::monostate &)
+semantic_analysis::visit(node &n, declaration &)
 {
+    SHOW;
+    traversal_->disableSubTree();
+    auto &child = n.children[0];
+    auto &var = std::get<variable>(child->kind_).name_;
+    checkKeyword(var);
+    symbol_scope::add(var, *child);
 }
 
-#define xx(a, b)  void node_visitor::visit(node &n, a &) {  }
-#include "node_kind.def"
-#undef xx
-#undef yy
+void
+semantic_analysis::visit(node &n, compound_statement &c)
+{
+    symbol_scope scope(c);
+    SHOW;
+}
+
+void
+semantic_analysis::visit(node &n, variable &)
+{
+    SHOW;
+    auto &name = std::get<variable>(n.kind_).name_;
+    checkKeyword(name);
+    auto r = symbol_scope::lookup(name);
+    n.set_kind(variable_ref{r});
+    n.set_type<variable_ref>();
+    n.remove_content();
+}
 
 } // namespace Calc

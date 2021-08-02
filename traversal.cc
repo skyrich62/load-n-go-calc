@@ -23,45 +23,34 @@
  * Rich Newman
  */
 
-
-#ifndef EVALUATOR_H_INCLUDED
-#define EVALUATOR_H_INCLUDED
-
-#include "node.h"
+#include "traversal.h"
 #include "visitor.h"
 
-#include <map>
-
 namespace Calc {
-/// Evaluate the parse tree.
-/// Once the parse has completed, traverse the parse tree evaluating the nodes to
-/// produce a result.
-class evaluator : public node_visitor
+
+using namespace Calc::Node;
+
+traversal::traversal(node_visitor &visitor) :
+    visitor_(visitor)
 {
-public:
-    evaluator() = default;
-    evaluator(const evaluator &) = delete;
-    evaluator(evaluator &&) = default;
-    ~evaluator() = default;
+    visitor.set_traversal(*this);
+}
 
-    evaluator& operator=(const evaluator &) = delete;
-    evaluator& operator=(evaluator &&) = default;
+void
+traversal::traverse(node &n)
+{
+    if (stop_) {
+        return;
+    }
+    if (disable_) {
+        disable_ = false;
+        return;
+    }
+    visitor_.accept(n);
+    for (const auto &child : n.children) {
+        //visitor_.accept(*child);
+        traverse(*child);
+    }
+}
 
-#define xx(a, b) void visit(Node::node &, Node::a &) override;
-#include "node_kind.def"
-#undef xx
-#undef yy
-
-    /// Set the result of the current evaluation.
-    void set_result(int res)                { result_ = res; }
-
-private:
-    using ValueMap = std::map<Node::node*, int>;
-    ValueMap values_;
-    int      result_{0};
-
-};
 } // namespace Calc
-
-
-#endif // EVALUATOR_H_INCLUDED

@@ -24,44 +24,44 @@
  */
 
 
-#ifndef EVALUATOR_H_INCLUDED
-#define EVALUATOR_H_INCLUDED
+#ifndef SEMANTIC_ANALYSIS_H_INCLUDED
+#define SEMANTIC_ANALYSIS_H_INCLUDED
 
 #include "node.h"
 #include "visitor.h"
-
-#include <map>
+#include "symbol_scope.h"
+#include "traversal.h"
 
 namespace Calc {
 /// Evaluate the parse tree.
 /// Once the parse has completed, traverse the parse tree evaluating the nodes to
 /// produce a result.
-class evaluator : public node_visitor
+class semantic_analysis : public node_visitor
 {
 public:
-    evaluator() = default;
-    evaluator(const evaluator &) = delete;
-    evaluator(evaluator &&) = default;
-    ~evaluator() = default;
+    explicit semantic_analysis(Node::parent &p);
+    semantic_analysis() = delete;
+    semantic_analysis(const semantic_analysis &) = delete;
+    semantic_analysis(semantic_analysis &&) = default;
+    ~semantic_analysis() = default;
 
-    evaluator& operator=(const evaluator &) = delete;
-    evaluator& operator=(evaluator &&) = default;
+    semantic_analysis& operator=(const semantic_analysis &) = delete;
+    semantic_analysis& operator=(semantic_analysis &&) = default;
 
-#define xx(a, b) void visit(Node::node &, Node::a &) override;
-#include "node_kind.def"
-#undef xx
-#undef yy
+    /// Visit a declaration
+    void visit(Node::node &, Node::declaration &) override;
 
-    /// Set the result of the current evaluation.
-    void set_result(int res)                { result_ = res; }
+    /// Visit a compound statement.  Evaluate each statement.
+    void visit(Node::node &, Node::compound_statement &) override;
+
+    /// Visit a symbol node.
+    void visit(Node::node &, Node::variable &) override;
 
 private:
-    using ValueMap = std::map<Node::node*, int>;
-    ValueMap values_;
-    int      result_{0};
-
+    symbol_scope scope_;
 };
+
 } // namespace Calc
 
 
-#endif // EVALUATOR_H_INCLUDED
+#endif // SEMANTIC_ANALYSIS_H_INCLUDED

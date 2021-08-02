@@ -23,45 +23,12 @@
  * Rich Newman
  */
 
-
-#ifndef EVALUATOR_H_INCLUDED
-#define EVALUATOR_H_INCLUDED
-
+#include <ostream>
 #include "node.h"
-#include "visitor.h"
-
-#include <map>
 
 namespace Calc {
-/// Evaluate the parse tree.
-/// Once the parse has completed, traverse the parse tree evaluating the nodes to
-/// produce a result.
-class evaluator : public node_visitor
-{
-public:
-    evaluator() = default;
-    evaluator(const evaluator &) = delete;
-    evaluator(evaluator &&) = default;
-    ~evaluator() = default;
 
-    evaluator& operator=(const evaluator &) = delete;
-    evaluator& operator=(evaluator &&) = default;
+void
+print_dot(std::ostream &os, Node::node &n);
 
-#define xx(a, b) void visit(Node::node &, Node::a &) override;
-#include "node_kind.def"
-#undef xx
-#undef yy
-
-    /// Set the result of the current evaluation.
-    void set_result(int res)                { result_ = res; }
-
-private:
-    using ValueMap = std::map<Node::node*, int>;
-    ValueMap values_;
-    int      result_{0};
-
-};
 } // namespace Calc
-
-
-#endif // EVALUATOR_H_INCLUDED

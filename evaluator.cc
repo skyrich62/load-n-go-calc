@@ -32,262 +32,315 @@ namespace Calc {
 using namespace Calc::Node;
 
 void
-checkKeyword(const std::string &name)
+evaluator::visit(node &n, declaration &)
 {
-    static std::set<std::string> keywords{
-        "if", "else", "and", "then", "or", "and", "var"
-    };
-
-    if (auto found = keywords.find(name); found != keywords.end())  {
-        std::cerr << "Warning: keyword '" << name << "' used as symbol_name."
-                  << std::endl;
-    }
 }
 
-int
-evaluator::visit(const node &n, const declaration &)
+void
+evaluator::visit(node &n, variable&)
 {
-    const auto var = std::get<symbol>(n.children[0]->kind_).value_;
-    checkKeyword(var);
-    symbol_scope::add(var);
-    return 0;
 }
 
-int
-evaluator::visit(const node &n, const compound_statement&)
+void
+evaluator::visit(node &n, root &)
 {
-    symbol_scope locals;
-    auto res = 0;
     auto &c = n.children;
     for (const auto &child : c) {
-        res = this->accept(*child);
+        this->accept(*child);
     }
-    return res;
 }
 
-int
-evaluator::visit(const node &n, const if_statement &)
+void
+evaluator::visit(node &n, variable_ref &var)
 {
-    const auto &cond = *n.children[0];
-    auto res = accept(cond);
-    if (res != 0) {
+    auto ptr = var.variable_;
+    set_result(values_[ptr]);
+}
+
+void
+evaluator::visit(node &n, scope &)
+{
+}
+
+void
+evaluator::visit(node &n, compound_statement&)
+{
+    auto &c = n.children;
+    for (const auto &child : c) {
+        this->accept(*child);
+    }
+}
+
+void
+evaluator::visit(node &n, if_statement &)
+{
+    auto &cond = *n.children[0];
+    accept(cond);
+    if (result_ != 0) {
         accept(*n.children[1]);
     } else {
         if (n.children.size() == 3) {
             accept(*n.children[2]);
         }
     }
-    return 0;
 }
 
-int
-evaluator::visit(const node &n, const assignment_statement &)
+void
+evaluator::visit(node &n, assignment_statement &)
 {
-    auto res = accept(*n.children[1]);
-    auto var = std::get<symbol>(n.children[0]->kind_).value_;
-    checkKeyword(var);
-    symbol_scope::lookup(var) = res;
-    std::cerr << "Result: " << var << " = " << res << std::endl;
-    return res;
+    accept(*n.children[1]);
+    auto var = std::get<variable_ref>(n.children[0]->kind_).variable_;
+    auto name = std::get<variable>(var->kind_).name_;
+    values_[var] = result_;
+    std::cerr << "Result: " << name << " = " << result_ << std::endl;
 }
 
-int
-evaluator::visit(const node &n, const expression_statement &)
+void
+evaluator::visit(node &n, expression_statement &)
 {
-    auto res = accept(*n.children[0]);
-    std::cerr << "Result: " << res << std::endl;
-    return res;
+    accept(*n.children[0]);
+    std::cerr << "Result: " << result_ << std::endl;
 }
 
-int
-evaluator::visit(const node &n, const symbol &sym)
+void
+evaluator::visit(node &, number &i)
 {
-    const auto &var = sym.value_;
-    checkKeyword(var);
-    return symbol_scope::lookup(var);
+    set_result(i.value_);
 }
 
-int
-evaluator::visit(const node &, const number &i)
+void
+evaluator::visit(node &n, unary_minus &)
 {
-    return i.value_;
+    accept(*n.children[0]);
+    set_result(-1 * result_);
 }
 
-int
-evaluator::visit(const node &n, const unary_minus &)
+void
+evaluator::visit(node &n, unary_plus &)
 {
-    return -1 * accept(*n.children[0]);
+    accept(*n.children[0]);
 }
 
-int
-evaluator::visit(const node &n, const unary_plus &)
+void
+evaluator::visit(node &n, multiplication &)
 {
-    return accept(*n.children[0]);
+    accept(*n.children[0]);
+    auto lhs = result_;
+    accept(*n.children[1]);
+    auto rhs = result_;
+    set_result(lhs * rhs);
 }
 
-int
-evaluator::visit(const node &n, const multiplication &)
+void
+evaluator::visit(node &n, division &)
 {
-    return accept(*n.children[0]) * accept(*n.children[1]);
+    accept(*n.children[0]);
+    auto lhs = result_;
+    accept(*n.children[1]);
+    auto rhs = result_;
+    set_result(lhs / rhs);
 }
 
-int
-evaluator::visit(const node &n, const division &)
+void
+evaluator::visit(node &n, modulus &)
 {
-    return accept(*n.children[0]) / accept(*n.children[1]);
+    accept(*n.children[0]);
+    auto lhs = result_;
+    accept(*n.children[1]);
+    auto rhs = result_;
+    set_result(lhs % rhs);
 }
 
-int
-evaluator::visit(const node &n, const modulus &)
+void
+evaluator::visit(node &n, addition &)
 {
-    return accept(*n.children[0]) % accept(*n.children[1]);
+    accept(*n.children[0]);
+    auto lhs = result_;
+    accept(*n.children[1]);
+    auto rhs = result_;
+    set_result(lhs + rhs);
 }
 
-int
-evaluator::visit(const node &n, const addition &)
+void
+evaluator::visit(node &n, subtraction &)
 {
-    return accept(*n.children[0]) + accept(*n.children[1]);
+    accept(*n.children[0]);
+    auto lhs = result_;
+    accept(*n.children[1]);
+    auto rhs = result_;
+    set_result(lhs - rhs);
 }
 
-int
-evaluator::visit(const node &n, const subtraction &)
+void
+evaluator::visit(node &n, logical_or &)
 {
-    return accept(*n.children[0]) - accept(*n.children[1]);
-}
-
-int
-evaluator::visit(const node &n, const logical_or &)
-{
-    auto lhs = accept(*n.children[0]);
-    auto rhs = accept(*n.children[1]);
+    accept(*n.children[0]);
+    auto lhs = result_;
+    accept(*n.children[1]);
+    auto rhs = result_;
     if ((lhs != 0) || (rhs != 0)) {
-        return 1;
+        set_result(1);
+        return;
     }
-    return 0;
+    set_result(0);
 }
 
-int
-evaluator::visit(const node &n, const logical_or_else &)
+void
+evaluator::visit(node &n, logical_or_else &)
 {
-    auto lhs = accept(*n.children[0]);
+    accept(*n.children[0]);
+    auto lhs = result_;
     if (lhs != 0) {
-        return 1;
+        set_result(1);
+        return;
     }
-    auto rhs = accept(*n.children[1]);
+    accept(*n.children[1]);
+    auto rhs = result_;
     if (rhs != 0) {
-        return 1;
+        set_result(1);
+        return;
     }
-    return 0;
+    set_result(0);
 }
 
-int
-evaluator::visit(const node &n, const logical_and &)
+void
+evaluator::visit(node &n, logical_and &)
 {
-    auto lhs = accept(*n.children[0]);
-    auto rhs = accept(*n.children[1]);
+    accept(*n.children[0]);
+    auto lhs = result_;
+    accept(*n.children[1]);
+    auto rhs = result_;
     if ((lhs != 0) && (rhs != 0)) {
-        return 1;
+        set_result(1);
+        return;
     }
-    return 0;
+    set_result(0);
 }
 
-int
-evaluator::visit(const node &n, const logical_and_then &)
+void
+evaluator::visit(node &n, logical_and_then &)
 {
-    auto lhs = accept(*n.children[0]);
+    accept(*n.children[0]);
+    auto lhs = result_;
     if (lhs == 0) {
-        return 0;
+        set_result(0);
+        return;
     }
-    auto rhs = accept(*n.children[1]);
+    accept(*n.children[1]);
+    auto rhs = result_;
     if (rhs != 0) {
-        return 1;
+        set_result(1);
+        return;
     }
-    return 0;
+    set_result(0);
 }
 
-int
-evaluator::visit(const node &n, const equal_to &)
+void
+evaluator::visit(node &n, equal_to &)
 {
-    auto lhs = accept(*n.children[0]);
-    auto rhs = accept(*n.children[1]);
+    accept(*n.children[0]);
+    auto lhs = result_;
+    accept(*n.children[1]);
+    auto rhs = result_;
     if (lhs == rhs) {
-        return 1;
+        set_result(1);
+        return;
     }
-    return 0;
+    set_result(0);
 }
 
-int
-evaluator::visit(const node &n, const not_equal &)
+void
+evaluator::visit(node &n, not_equal &)
 {
-    auto lhs = accept(*n.children[0]);
-    auto rhs = accept(*n.children[1]);
+    accept(*n.children[0]);
+    auto lhs = result_;
+    accept(*n.children[1]);
+    auto rhs = result_;
     if (lhs != rhs) {
-        return 1;
+        set_result(1);
+        return;
     }
-    return 0;
+    set_result(0);
 }
 
-int
-evaluator::visit(const node &n, const less_than &)
+void
+evaluator::visit(node &n, less_than &)
 {
-    auto lhs = accept(*n.children[0]);
-    auto rhs = accept(*n.children[1]);
+    accept(*n.children[0]);
+    auto lhs = result_;
+    accept(*n.children[1]);
+    auto rhs = result_;
     if (lhs < rhs) {
-        return 1;
+        set_result(1);
+        return;
     }
-    return 0;
+    set_result(0);
 }
 
-int
-evaluator::visit(const node &n, const less_or_equal &)
+void
+evaluator::visit(node &n, less_or_equal &)
 {
-    auto lhs = accept(*n.children[0]);
-    auto rhs = accept(*n.children[1]);
+    accept(*n.children[0]);
+    auto lhs = result_;
+    accept(*n.children[1]);
+    auto rhs = result_;
     if (lhs <= rhs) {
-        return 1;
+        set_result(1);
+        return;
     }
-    return 0;
+    set_result(0);
 }
 
-int
-evaluator::visit(const node &n, const greater_than &)
+void
+evaluator::visit(node &n, greater_than &)
 {
-    auto lhs = accept(*n.children[0]);
-    auto rhs = accept(*n.children[1]);
+    accept(*n.children[0]);
+    auto lhs = result_;
+    accept(*n.children[1]);
+    auto rhs = result_;
     if (lhs > rhs) {
-        return 1;
+        set_result(1);
+        return;
     }
-    return 0;
+    set_result(0);
 }
 
-int
-evaluator::visit(const node &n, const greater_or_equal &)
+void
+evaluator::visit(node &n, greater_or_equal &)
 {
-    auto lhs = accept(*n.children[0]);
-    auto rhs = accept(*n.children[1]);
+    accept(*n.children[0]);
+    auto lhs = result_;
+    accept(*n.children[1]);
+    auto rhs = result_;
     if (lhs >= rhs) {
-        return 1;
+        set_result(1);
+        return;
     }
-    return 0;
+    set_result(0);
 }
 
-int
-evaluator::visit(const node &n, const function_call &f)
+void
+evaluator::visit(node &n, function_call &f)
 {
-    auto operand = accept(*n.children[1]);
-    auto func = std::get<symbol>(n.children[0]->kind_).value_;
+    /*
+    accept(*n.children[1]);
+    auto operand = result_;
+    auto func = std::get<variable_ref>(n.children[0]->kind_).variable;
     if (func == "abs") {
-        return abs(operand);
+        set_result(abs(operand));
     } else if (func == "sgn") {
         if (operand < 0) {
-            return -1;
+            set_result(-1);
+            return;
         } else if (operand > 0) {
-            return 1;
+            set_result(1);
+            return;
         }
-        return 0;
+        set_result(0);
     }
     std::cerr << "Unknown function: " << func << " -- ignored.\n";
-    return operand;
+    set_result(operand);
+    */
 }
 
 } // namespace Calc
