@@ -60,8 +60,8 @@ int main(int argc, char *argv[])
                     trav.traverse(*root);
                 }
                 Calc::print_dot(std::cout, *root);
-                //Calc::evaluator eval;
-                //eval.accept(*root);
+                Calc::evaluator eval;
+                eval.accept(*root);
             } else {
                 std::cerr << "Parse fail." << std::endl;
                 return 1;

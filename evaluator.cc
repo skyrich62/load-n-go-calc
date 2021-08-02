@@ -34,18 +34,27 @@ using namespace Calc::Node;
 void
 evaluator::visit(node &n, declaration &)
 {
-    //const auto var = std::get<variable_ref>(n.children[0]->kind_).variable_;
-    //symbol_scope::add(var);
+}
+
+void
+evaluator::visit(node &n, variable&)
+{
 }
 
 void
 evaluator::visit(node &n, root &)
 {
+    auto &c = n.children;
+    for (const auto &child : c) {
+        this->accept(*child);
+    }
 }
 
 void
-evaluator::visit(node &n, variable &)
+evaluator::visit(node &n, variable_ref &var)
 {
+    auto ptr = var.variable_;
+    set_result(values_[ptr]);
 }
 
 void
@@ -80,10 +89,10 @@ void
 evaluator::visit(node &n, assignment_statement &)
 {
     accept(*n.children[1]);
-    //auto var = std::get<variable_ref>(n.children[0]->kind_).variable;
-    //checkKeyword(var);
-    //symbol_scope::lookup(var) = result_;
-    //std::cerr << "Result: " << var << " = " << result_ << std::endl;
+    auto var = std::get<variable_ref>(n.children[0]->kind_).variable_;
+    auto name = std::get<variable>(var->kind_).name_;
+    values_[var] = result_;
+    std::cerr << "Result: " << name << " = " << result_ << std::endl;
 }
 
 void
@@ -91,13 +100,6 @@ evaluator::visit(node &n, expression_statement &)
 {
     accept(*n.children[0]);
     std::cerr << "Result: " << result_ << std::endl;
-}
-
-void
-evaluator::visit(node &n, variable_ref &sym)
-{
-    //const auto &var = sym.variable;
-    //set_result(symbol_scope::lookup(var));
 }
 
 void

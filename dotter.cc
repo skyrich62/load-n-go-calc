@@ -53,6 +53,7 @@ public:
     void print_node(node &n);
 
 
+    void visit (node &, multiplication &) override;
 private:
     std::ostream &os_;
 
@@ -182,6 +183,12 @@ dot_visitor::visit_operation(node &n)
     print_node(n);
     LinkNames names{"lhs", "rhs"};
     print_links(n, names);
+}
+
+void
+dot_visitor::visit(node &n, multiplication &)
+{
+    visit_operation(n);
 }
 
 void

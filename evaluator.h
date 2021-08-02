@@ -30,6 +30,8 @@
 #include "node.h"
 #include "visitor.h"
 
+#include <map>
+
 namespace Calc {
 /// Evaluate the parse tree.
 /// Once the parse has completed, traverse the parse tree evaluating the nodes to
@@ -54,7 +56,10 @@ public:
     void set_result(int res)                { result_ = res; }
 
 private:
-    int          result_{0};
+    using ValueMap = std::map<Node::node*, int>;
+    ValueMap values_;
+    int      result_{0};
+
 };
 } // namespace Calc
 
