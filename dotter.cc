@@ -30,6 +30,9 @@
 
 namespace Calc {
 
+const char *defaultColor = "black";
+const char *varColor     = "purple";
+
 using namespace Calc::Node;
 
 class dot_visitor : public node_visitor
@@ -38,64 +41,72 @@ public:
     dot_visitor(std::ostream &os) : os_(os) { }
     dot_visitor(const dot_visitor &) = delete;
     dot_visitor& operator=(const dot_visitor &) = delete;
+    void print_node(node &n, const char *color = defaultColor);
 
-    void visit(node &n, root &) override;
-    void visit(node &n, variable_ref &) override;
-    void visit(node &n, declaration &) override;
-    void visit(node &n, variable &) override;
-    //void visit(node &n, std::monostate &) override;
-    void visit(node &n, assignment_statement &) override;
-    void visit(node &n, expression_statement &) override;
-    void visit(node &n, compound_statement &) override;
-    void visit(node &n, if_statement &) override;
-    void visit(node &n, number &) override;
-    void visit(node &n, scope &) override;
-    void print_node(node &n);
+#define xx(a, b) void visit(node &n, a &) override;
+#include "node_kind.def"
+#undef xx
 
-
-    void visit (node &, multiplication &) override;
 private:
     std::ostream &os_;
 
     using LinkNames = std::vector<std::string>;
 
-    void print_link(const node &from, const node &to, const std::string_view s);
+    void print_link(const node &from,
+                    const node &to,
+                    const std::string_view s,
+                    const char *color = defaultColor);
     void visit_operation(node &n);
-    void print_links(const node &n, const LinkNames &names);
-    void print_links(const node &n, std::string_view s);
+    void print_links(const node &n,
+                     const LinkNames &names,
+                     const char *color = defaultColor);
+    void print_links(const node &n,
+                     std::string_view s,
+                     const char *color = defaultColor);
+
 };
 
 void
-dot_visitor::print_link(const node &from, const node &to, std::string_view s)
+dot_visitor::print_link(const node &from,
+                        const node &to,
+                        std::string_view s,
+                        const char *color)
 {
     os_ << "  x" << &from << " -> x" << &to;
     if (!s.empty()) {
-        os_ << " [label=\"" << s << "\"]";
+        os_ << " [color= "<< color << ", fontcolor= " << color
+            << ", label=\"" << s << "\"]";
     }
     os_ << '\n';
 }
 
 void
-dot_visitor::print_links(const node &n, const LinkNames &names)
+dot_visitor::print_links(const node &n,
+                         const LinkNames &names,
+                         const char *color)
 {
     for (auto i = 0u; i < n.children.size(); ++i) {
-        print_link(n, *n.children[i], names[i]);
+        print_link(n, *n.children[i], names[i], color);
     }
 }
 
 void
-dot_visitor::print_links(const node &n, std::string_view name)
+dot_visitor::print_links(const node &n,
+                         std::string_view name,
+                         const char *color)
 {
     for (auto i = 0u; i < n.children.size(); ++i) {
-        print_link(n, *n.children[i], name);
+        print_link(n, *n.children[i], name, color);
     }
 }
 
 void
-dot_visitor::print_node(node &n)
+dot_visitor::print_node(node &n, const char *color)
 {
-    os_ << "  x" << &n << " [label=\"";
-    auto s = n.is_root() ? "ROOT" : n.type;
+    os_ << "  x" << &n
+        << " [color= " << color << ", fontcolor=" << color
+        << ", label=\"";
+    auto s = n.is_root() ? "ROOT" : std::string(n.type);
     TAO_PEGTL_NAMESPACE::parse_tree::internal::escape(os_, s);
     if (n.has_content()) {
         os_ << "\\n\\\"";
@@ -130,14 +141,14 @@ void
 dot_visitor::visit(node &n, variable_ref &r)
 {
     print_node(n);
-    print_link(n, *r.variable_, "variable");
+    print_link(n, *r.variable_, "variable", varColor);
 }
 
 void
 dot_visitor::visit(node &n, scope &s)
 {
     print_node(n);
-    print_links(n, "variable");
+    print_links(n, "variable", varColor);
     for (auto &var : n.children) {
         accept(*var);
     }
@@ -153,7 +164,7 @@ dot_visitor::visit(node &n, declaration &d)
 void
 dot_visitor::visit(node &n, variable &)
 {
-    print_node(n);
+    print_node(n, varColor);
 }
 
 void
@@ -181,8 +192,120 @@ void
 dot_visitor::visit_operation(node &n)
 {
     print_node(n);
-    LinkNames names{"lhs", "rhs"};
-    print_links(n, names);
+    if (n.children.size() == 1) {
+        print_links(n, "operand");
+    } else {
+        const static LinkNames binaryNames{"lhs", "rhs"};
+        print_links(n, binaryNames);
+    }
+}
+
+void
+dot_visitor::visit(node &n, function_call &)
+{
+    print_node(n);
+    print_link(n, *n.children[0], "function");
+    for (auto i = 1u; i < n.children.size(); ++i) {
+        std::ostringstream os;
+        os << "arg #" << i;
+        print_link(n, *n.children[i], os.str());
+    }
+}
+
+void
+dot_visitor::visit(node &n, unary_plus &)
+{
+    visit_operation(n);
+}
+
+void
+dot_visitor::visit(node &n, unary_minus &)
+{
+    visit_operation(n);
+}
+
+void
+dot_visitor::visit(node &n, modulus &)
+{
+    visit_operation(n);
+}
+
+void
+dot_visitor::visit(node &n, logical_or &)
+{
+    visit_operation(n);
+}
+
+void
+dot_visitor::visit(node &n, logical_or_else &)
+{
+    visit_operation(n);
+}
+
+void
+dot_visitor::visit(node &n, logical_and &)
+{
+    visit_operation(n);
+}
+
+void
+dot_visitor::visit(node &n, logical_and_then &)
+{
+    visit_operation(n);
+}
+
+void
+dot_visitor::visit(node &n, greater_than &)
+{
+    visit_operation(n);
+}
+
+void
+dot_visitor::visit(node &n, greater_or_equal &)
+{
+    visit_operation(n);
+}
+
+void
+dot_visitor::visit(node &n, less_than &)
+{
+    visit_operation(n);
+}
+
+void
+dot_visitor::visit(node &n, less_or_equal &)
+{
+    visit_operation(n);
+}
+
+void
+dot_visitor::visit(node &n, not_equal &)
+{
+    visit_operation(n);
+}
+
+void
+dot_visitor::visit(node &n, equal_to &)
+{
+    visit_operation(n);
+}
+
+void
+dot_visitor::visit(node &n, addition &)
+{
+    visit_operation(n);
+}
+
+void
+dot_visitor::visit(node &n, subtraction &)
+{
+    visit_operation(n);
+}
+
+void
+dot_visitor::visit(node &n, division &)
+{
+    visit_operation(n);
 }
 
 void
