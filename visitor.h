@@ -54,8 +54,6 @@ public:
 
 #define xx(a, b) virtual void visit(Node::node &, Node::a &);
 #include "node_kind.def"
-#undef xx
-#undef yy
 
     void set_traversal(traversal &trav)     { traversal_ = &trav; }
 

@@ -46,12 +46,28 @@ struct parent
     std::unique_ptr<node> scope_;
 };
 
-struct operation{ };
+struct value {
+    int value_;
+};
 
-#define xx(a, b) struct a b;
+struct symbol_ref {
+    node *variable_;
+};
+
+struct operation { };
+
+struct statement { };
+
+struct parent_stmt : public parent, public statement { };
+
+struct symbol_name {
+    std::string name_;
+};
+
+struct nothing { };
+
+#define xx(a, b) struct a : public b { };
 #include "node_kind.def"
-#undef xx
-#undef yy
 
 /// The variant which will hold information specific to the type of parse
 /// tree node.
@@ -60,8 +76,6 @@ using node_kind =
         std::monostate,       ///< Not classified yet.
 #define xx(a, b) a,
 #include "node_kind.def"
-#undef xx
-#undef yy
         std::monostate        ///< Terminate the variant type list.
     >;
 

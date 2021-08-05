@@ -49,8 +49,6 @@ public:
 
 #define xx(a, b) void visit(Node::node &, Node::a &) override;
 #include "node_kind.def"
-#undef xx
-#undef yy
 
     /// Set the result of the current evaluation.
     void set_result(int res)                { result_ = res; }

@@ -45,7 +45,6 @@ public:
 
 #define xx(a, b) void visit(node &n, a &) override;
 #include "node_kind.def"
-#undef xx
 
 private:
     std::ostream &os_;
@@ -134,6 +133,7 @@ dot_visitor::visit(node &n, compound_statement &s)
     print_links(n, "statement");
     if (s.scope_) {
         accept(*s.scope_);
+        print_link(n, *s.scope_, "scope");
     }
 }
 
