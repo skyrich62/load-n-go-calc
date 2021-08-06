@@ -43,7 +43,7 @@ public:
     dot_visitor& operator=(const dot_visitor &) = delete;
     void print_node(node &n, const char *color = defaultColor);
 
-#define xx(a, b) void visit(node &n, a &) override;
+#define xx(a, b) void pre_visit(node &n, a &) override;
 #include "node_kind.def"
 
 private:
@@ -55,7 +55,7 @@ private:
                     const node &to,
                     const std::string_view s,
                     const char *color = defaultColor);
-    void visit_operation(node &n);
+    void pre_visit_operation(node &n);
     void print_links(const node &n,
                      const LinkNames &names,
                      const char *color = defaultColor);
@@ -94,8 +94,14 @@ dot_visitor::print_links(const node &n,
                          std::string_view name,
                          const char *color)
 {
+    auto seq = n.children.size() > 1;
     for (auto i = 0u; i < n.children.size(); ++i) {
-        print_link(n, *n.children[i], name, color);
+        std::ostringstream os;
+        os << name;
+        if (seq) {
+            os << " #" << i + 1;
+        }
+        print_link(n, *n.children[i], os.str(), color);
     }
 }
 
@@ -116,7 +122,7 @@ dot_visitor::print_node(node &n, const char *color)
 }
 
 void
-dot_visitor::visit(node &n, root &r)
+dot_visitor::pre_visit(node &n, root &r)
 {
     print_node(n);
     print_links(n, "statement");
@@ -127,7 +133,7 @@ dot_visitor::visit(node &n, root &r)
 }
 
 void
-dot_visitor::visit(node &n, compound_statement &s)
+dot_visitor::pre_visit(node &n, compound_statement &s)
 {
     print_node(n);
     print_links(n, "statement");
@@ -138,43 +144,44 @@ dot_visitor::visit(node &n, compound_statement &s)
 }
 
 void
-dot_visitor::visit(node &n, variable_ref &r)
+dot_visitor::pre_visit(node &n, variable_ref &r)
 {
     print_node(n);
     print_link(n, *r.variable_, "variable", varColor);
 }
 
 void
-dot_visitor::visit(node &n, scope &s)
+dot_visitor::pre_visit(node &n, scope &s)
 {
     print_node(n);
     print_links(n, "variable", varColor);
     for (auto &var : n.children) {
         accept(*var);
     }
+    //print_link(n, s.parent_, "parent");
 }
 
 void
-dot_visitor::visit(node &n, declaration &d)
+dot_visitor::pre_visit(node &n, declaration &d)
 {
     print_node(n);
     print_link(n, *n.children[0], "variable");
 }
 
 void
-dot_visitor::visit(node &n, variable &)
+dot_visitor::pre_visit(node &n, variable &)
 {
     print_node(n, varColor);
 }
 
 void
-dot_visitor::visit(node &n, number &)
+dot_visitor::pre_visit(node &n, number &)
 {
     print_node(n);
 }
 
 void
-dot_visitor::visit(node &n, assignment_statement &)
+dot_visitor::pre_visit(node &n, assignment_statement &)
 {
     print_node(n);
     LinkNames names{"variable", "expression"};
@@ -182,14 +189,14 @@ dot_visitor::visit(node &n, assignment_statement &)
 }
 
 void
-dot_visitor::visit(node &n, expression_statement &)
+dot_visitor::pre_visit(node &n, expression_statement &)
 {
     print_node(n);
     print_link(n, *n.children[0], "expression");
 }
 
 void
-dot_visitor::visit_operation(node &n)
+dot_visitor::pre_visit_operation(node &n)
 {
     print_node(n);
     if (n.children.size() == 1) {
@@ -201,7 +208,7 @@ dot_visitor::visit_operation(node &n)
 }
 
 void
-dot_visitor::visit(node &n, function_call &)
+dot_visitor::pre_visit(node &n, function_call &)
 {
     print_node(n);
     print_link(n, *n.children[0], "function");
@@ -213,109 +220,109 @@ dot_visitor::visit(node &n, function_call &)
 }
 
 void
-dot_visitor::visit(node &n, unary_plus &)
+dot_visitor::pre_visit(node &n, unary_plus &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, unary_minus &)
+dot_visitor::pre_visit(node &n, unary_minus &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, modulus &)
+dot_visitor::pre_visit(node &n, modulus &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, logical_or &)
+dot_visitor::pre_visit(node &n, logical_or &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, logical_or_else &)
+dot_visitor::pre_visit(node &n, logical_or_else &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, logical_and &)
+dot_visitor::pre_visit(node &n, logical_and &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, logical_and_then &)
+dot_visitor::pre_visit(node &n, logical_and_then &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, greater_than &)
+dot_visitor::pre_visit(node &n, greater_than &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, greater_or_equal &)
+dot_visitor::pre_visit(node &n, greater_or_equal &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, less_than &)
+dot_visitor::pre_visit(node &n, less_than &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, less_or_equal &)
+dot_visitor::pre_visit(node &n, less_or_equal &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, not_equal &)
+dot_visitor::pre_visit(node &n, not_equal &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, equal_to &)
+dot_visitor::pre_visit(node &n, equal_to &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, addition &)
+dot_visitor::pre_visit(node &n, addition &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, subtraction &)
+dot_visitor::pre_visit(node &n, subtraction &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, division &)
+dot_visitor::pre_visit(node &n, division &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, multiplication &)
+dot_visitor::pre_visit(node &n, multiplication &)
 {
-    visit_operation(n);
+    pre_visit_operation(n);
 }
 
 void
-dot_visitor::visit(node &n, if_statement &s)
+dot_visitor::pre_visit(node &n, if_statement &s)
 {
     print_node(n);
     LinkNames names{"condition", "then_clause", "else_clause"};
@@ -326,7 +333,7 @@ void
 print_dot(std::ostream &os, node &n)
 {
     dot_visitor d(os);
-    traversal trav(d);
+    traversal trav(d, node_visitor::PRE_VISIT);
     os << "digraph parse_tree\n{\n";
     trav.traverse(n);
     os << "}\n";

@@ -47,7 +47,7 @@ public:
     evaluator& operator=(const evaluator &) = delete;
     evaluator& operator=(evaluator &&) = default;
 
-#define xx(a, b) void visit(Node::node &, Node::a &) override;
+#define xx(a, b) void pre_visit(Node::node &, Node::a &) override;
 #include "node_kind.def"
 
     /// Set the result of the current evaluation.

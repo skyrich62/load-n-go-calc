@@ -32,22 +32,32 @@ namespace Calc {
 using namespace Calc::Node;
 
 void
-node_visitor::accept(node &n)
+node_visitor::accept(node &n, Mode mode)
 {
     auto &kind = n.kind_;
-    std::visit([this, &n](auto &arg)
+    std::visit([this, &n, mode](auto &arg)
         {
-            //std::cout << "*** " << __PRETTY_FUNCTION__ << std::endl;
-            return this->visit(n, arg);
+            if (mode == PRE_VISIT) {
+                return this->pre_visit(n, arg);
+            } else {
+                return this->post_visit(n, arg);
+            }
         }, kind);
 }
 
 void
-node_visitor::visit(node &, std::monostate &)
+node_visitor::pre_visit(node &, std::monostate &)
 {
 }
 
-#define xx(a, b)  void node_visitor::visit(node &n, a &) {  }
+void
+node_visitor::post_visit(node &, std::monostate &)
+{
+}
+
+#define xx(a, b)  void node_visitor::pre_visit(node &n, a &) {  }
+#include "node_kind.def"
+#define xx(a, b)  void node_visitor::post_visit(node &n, a &) {  }
 #include "node_kind.def"
 
 } // namespace Calc

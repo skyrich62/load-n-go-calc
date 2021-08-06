@@ -36,7 +36,7 @@ class node_visitor;
 class traversal
 {
 public:
-    traversal(node_visitor &visitor);
+    traversal(node_visitor &visitor, int mode);
 
     traversal(const traversal &) = delete;
     traversal(traversal &&) = default;
@@ -63,6 +63,7 @@ public:
 
 private:
     node_visitor &visitor_;
+    int          mode_;
     bool         disable_{false};
     bool         stop_{false};
 };

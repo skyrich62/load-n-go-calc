@@ -32,6 +32,10 @@
 #include "symbol_scope.h"
 #include "traversal.h"
 
+#include <memory>
+#include <stack>
+#include <vector>
+
 namespace Calc {
 /// Evaluate the parse tree.
 /// Once the parse has completed, traverse the parse tree evaluating the nodes to
@@ -39,8 +43,7 @@ namespace Calc {
 class semantic_analysis : public node_visitor
 {
 public:
-    explicit semantic_analysis(Node::parent &p);
-    semantic_analysis() = delete;
+    semantic_analysis(Node::parent &parent);
     semantic_analysis(const semantic_analysis &) = delete;
     semantic_analysis(semantic_analysis &&) = default;
     ~semantic_analysis() = default;
@@ -49,16 +52,27 @@ public:
     semantic_analysis& operator=(semantic_analysis &&) = default;
 
     /// Visit a declaration
-    void visit(Node::node &, Node::declaration &) override;
+    void pre_visit(Node::node &, Node::declaration &) override;
 
     /// Visit a compound statement.  Evaluate each statement.
-    void visit(Node::node &, Node::compound_statement &) override;
+    void pre_visit(Node::node &, Node::compound_statement &) override;
+
+    /// Visit compound statement, after visiting its children
+    void post_visit(Node::node &, Node::compound_statement &) override;
 
     /// Visit a symbol node.
-    void visit(Node::node &, Node::variable &) override;
+    void pre_visit(Node::node &, Node::variable &) override;
 
+    /// Push a new scope onto the symbol_scope stack.
+    void push_scope(Node::parent &parent);
+
+    /// Pop a scope off the stack, and delete it.
+    void pop_scope();
 private:
-    symbol_scope scope_;
+    using ScopePtr = std::unique_ptr<symbol_scope>;
+    using ScopeStack = std::stack<ScopePtr, std::vector<ScopePtr>>;
+
+    ScopeStack stack_;
 };
 
 } // namespace Calc

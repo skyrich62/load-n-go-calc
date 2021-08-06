@@ -46,13 +46,25 @@ checkKeyword(const std::string &name)
     }
 }
 
-semantic_analysis::semantic_analysis(parent &p) :
-    scope_(p)
+semantic_analysis::semantic_analysis(Node::parent &parent)
 {
+    push_scope(parent);
 }
 
 void
-semantic_analysis::visit(node &n, declaration &)
+semantic_analysis::push_scope(Node::parent &parent)
+{
+    stack_.emplace(std::make_unique<symbol_scope>(parent));
+}
+
+void
+semantic_analysis::pop_scope()
+{
+    stack_.pop();
+}
+
+void
+semantic_analysis::pre_visit(node &n, declaration &)
 {
     SHOW;
     traversal_->disableSubTree();
@@ -63,14 +75,20 @@ semantic_analysis::visit(node &n, declaration &)
 }
 
 void
-semantic_analysis::visit(node &n, compound_statement &c)
+semantic_analysis::pre_visit(node &n, compound_statement &c)
 {
-    symbol_scope scope(c);
+    push_scope(c);
     SHOW;
 }
 
 void
-semantic_analysis::visit(node &n, variable &)
+semantic_analysis::post_visit(node &, compound_statement &c)
+{
+    pop_scope();
+}
+
+void
+semantic_analysis::pre_visit(node &n, variable &)
 {
     SHOW;
     auto &name = std::get<variable>(n.kind_).name_;

@@ -36,6 +36,8 @@ class traversal;
 class node_visitor
 {
 public:
+    enum Mode { PRE_VISIT = 0x01, POST_VISIT = 0x02 };
+
     node_visitor() = default;
     explicit node_visitor(traversal &trav) : traversal_(&trav) { }
 
@@ -47,12 +49,15 @@ public:
     node_visitor& operator=(node_visitor &&) = default;
 
     /// Visit a node.
-    void accept(Node::node&);
+    void accept(Node::node&, Mode mode = PRE_VISIT);
 
     /// Visit a monostate node
-    virtual void visit(Node::node &, std::monostate &);
+    virtual void pre_visit(Node::node &, std::monostate &);
+    virtual void post_visit(Node::node &, std::monostate &);
 
-#define xx(a, b) virtual void visit(Node::node &, Node::a &);
+#define xx(a, b) virtual void pre_visit(Node::node &, Node::a &);
+#include "node_kind.def"
+#define xx(a, b) virtual void post_visit(Node::node &, Node::a &);
 #include "node_kind.def"
 
     void set_traversal(traversal &trav)     { traversal_ = &trav; }

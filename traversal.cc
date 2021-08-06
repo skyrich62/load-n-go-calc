@@ -30,8 +30,9 @@ namespace Calc {
 
 using namespace Calc::Node;
 
-traversal::traversal(node_visitor &visitor) :
-    visitor_(visitor)
+traversal::traversal(node_visitor &visitor, int mode) :
+    visitor_(visitor),
+    mode_(mode)
 {
     visitor.set_traversal(*this);
 }
@@ -46,10 +47,15 @@ traversal::traverse(node &n)
         disable_ = false;
         return;
     }
-    visitor_.accept(n);
+    if (mode_ & node_visitor::PRE_VISIT) {
+        visitor_.accept(n, node_visitor::PRE_VISIT);
+    }
     for (const auto &child : n.children) {
         //visitor_.accept(*child);
         traverse(*child);
+    }
+    if (mode_ & node_visitor::POST_VISIT) {
+        visitor_.accept(n, node_visitor::POST_VISIT);
     }
 }
 

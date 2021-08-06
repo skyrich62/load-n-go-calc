@@ -32,17 +32,17 @@ namespace Calc {
 using namespace Calc::Node;
 
 void
-evaluator::visit(node &n, declaration &)
+evaluator::pre_visit(node &n, declaration &)
 {
 }
 
 void
-evaluator::visit(node &n, variable&)
+evaluator::pre_visit(node &n, variable&)
 {
 }
 
 void
-evaluator::visit(node &n, root &)
+evaluator::pre_visit(node &n, root &)
 {
     auto &c = n.children;
     for (const auto &child : c) {
@@ -51,19 +51,19 @@ evaluator::visit(node &n, root &)
 }
 
 void
-evaluator::visit(node &n, variable_ref &var)
+evaluator::pre_visit(node &n, variable_ref &var)
 {
     auto ptr = var.variable_;
     set_result(values_[ptr]);
 }
 
 void
-evaluator::visit(node &n, scope &)
+evaluator::pre_visit(node &n, scope &)
 {
 }
 
 void
-evaluator::visit(node &n, compound_statement&)
+evaluator::pre_visit(node &n, compound_statement&)
 {
     auto &c = n.children;
     for (const auto &child : c) {
@@ -72,7 +72,7 @@ evaluator::visit(node &n, compound_statement&)
 }
 
 void
-evaluator::visit(node &n, if_statement &)
+evaluator::pre_visit(node &n, if_statement &)
 {
     auto &cond = *n.children[0];
     accept(cond);
@@ -86,7 +86,7 @@ evaluator::visit(node &n, if_statement &)
 }
 
 void
-evaluator::visit(node &n, assignment_statement &)
+evaluator::pre_visit(node &n, assignment_statement &)
 {
     accept(*n.children[1]);
     auto var = std::get<variable_ref>(n.children[0]->kind_).variable_;
@@ -96,33 +96,33 @@ evaluator::visit(node &n, assignment_statement &)
 }
 
 void
-evaluator::visit(node &n, expression_statement &)
+evaluator::pre_visit(node &n, expression_statement &)
 {
     accept(*n.children[0]);
     std::cerr << "Result: " << result_ << std::endl;
 }
 
 void
-evaluator::visit(node &, number &i)
+evaluator::pre_visit(node &, number &i)
 {
     set_result(i.value_);
 }
 
 void
-evaluator::visit(node &n, unary_minus &)
+evaluator::pre_visit(node &n, unary_minus &)
 {
     accept(*n.children[0]);
     set_result(-1 * result_);
 }
 
 void
-evaluator::visit(node &n, unary_plus &)
+evaluator::pre_visit(node &n, unary_plus &)
 {
     accept(*n.children[0]);
 }
 
 void
-evaluator::visit(node &n, multiplication &)
+evaluator::pre_visit(node &n, multiplication &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -132,7 +132,7 @@ evaluator::visit(node &n, multiplication &)
 }
 
 void
-evaluator::visit(node &n, division &)
+evaluator::pre_visit(node &n, division &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -142,7 +142,7 @@ evaluator::visit(node &n, division &)
 }
 
 void
-evaluator::visit(node &n, modulus &)
+evaluator::pre_visit(node &n, modulus &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -152,7 +152,7 @@ evaluator::visit(node &n, modulus &)
 }
 
 void
-evaluator::visit(node &n, addition &)
+evaluator::pre_visit(node &n, addition &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -162,7 +162,7 @@ evaluator::visit(node &n, addition &)
 }
 
 void
-evaluator::visit(node &n, subtraction &)
+evaluator::pre_visit(node &n, subtraction &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -172,7 +172,7 @@ evaluator::visit(node &n, subtraction &)
 }
 
 void
-evaluator::visit(node &n, logical_or &)
+evaluator::pre_visit(node &n, logical_or &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -186,7 +186,7 @@ evaluator::visit(node &n, logical_or &)
 }
 
 void
-evaluator::visit(node &n, logical_or_else &)
+evaluator::pre_visit(node &n, logical_or_else &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -204,7 +204,7 @@ evaluator::visit(node &n, logical_or_else &)
 }
 
 void
-evaluator::visit(node &n, logical_and &)
+evaluator::pre_visit(node &n, logical_and &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -218,7 +218,7 @@ evaluator::visit(node &n, logical_and &)
 }
 
 void
-evaluator::visit(node &n, logical_and_then &)
+evaluator::pre_visit(node &n, logical_and_then &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -236,7 +236,7 @@ evaluator::visit(node &n, logical_and_then &)
 }
 
 void
-evaluator::visit(node &n, equal_to &)
+evaluator::pre_visit(node &n, equal_to &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -250,7 +250,7 @@ evaluator::visit(node &n, equal_to &)
 }
 
 void
-evaluator::visit(node &n, not_equal &)
+evaluator::pre_visit(node &n, not_equal &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -264,7 +264,7 @@ evaluator::visit(node &n, not_equal &)
 }
 
 void
-evaluator::visit(node &n, less_than &)
+evaluator::pre_visit(node &n, less_than &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -278,7 +278,7 @@ evaluator::visit(node &n, less_than &)
 }
 
 void
-evaluator::visit(node &n, less_or_equal &)
+evaluator::pre_visit(node &n, less_or_equal &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -292,7 +292,7 @@ evaluator::visit(node &n, less_or_equal &)
 }
 
 void
-evaluator::visit(node &n, greater_than &)
+evaluator::pre_visit(node &n, greater_than &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -306,7 +306,7 @@ evaluator::visit(node &n, greater_than &)
 }
 
 void
-evaluator::visit(node &n, greater_or_equal &)
+evaluator::pre_visit(node &n, greater_or_equal &)
 {
     accept(*n.children[0]);
     auto lhs = result_;
@@ -320,7 +320,7 @@ evaluator::visit(node &n, greater_or_equal &)
 }
 
 void
-evaluator::visit(node &n, function_call &f)
+evaluator::pre_visit(node &n, function_call &f)
 {
     /*
     accept(*n.children[1]);
