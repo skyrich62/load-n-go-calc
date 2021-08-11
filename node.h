@@ -39,32 +39,51 @@ std::bool_constant< (std::is_same_v< T, Ts > || ...) >
 namespace Calc::Node {
 struct node;
 
-/// Define the members of the variant in the parse tree nodes.
+/// Define the base members of the variant in the parse tree nodes.
 
+/// Something that has scope, currently only the root, and a compound
+/// statement.
 struct parent
 {
     std::unique_ptr<node> scope_;
 };
 
+/// A constant value.
 struct value {
-    int value_;
+    int value_ = 0;
 };
 
+/// A reference to a symbol or variable.
 struct symbol_ref {
-    node *variable_;
+    node *variable_ = nullptr;
 };
 
+/// An operation of some kind.
 struct operation { };
 
+/// A statement of some kind.
 struct statement { };
 
+/// A parent statement, (used for compound statements).
 struct parent_stmt : public parent, public statement { };
 
+/// A variable/symbol name node.
 struct symbol_name {
     std::string name_;
 };
 
-struct nothing { };
+/// A scope node
+struct scope_base {
+    /// The parent scope of this one, or nullptr for the top-level, (global)
+    /// scope.
+    node *parent_scope_ = nullptr;
+
+    /// Subscopes of this scope if any.
+    std::vector<node *> subscopes_;
+};
+
+/// Used as a sentinel to end the list of variants.
+struct node_kind_last { };
 
 #define xx(a, b) struct a : public b { };
 #include "node_kind.def"
@@ -76,7 +95,7 @@ using node_kind =
         std::monostate,       ///< Not classified yet.
 #define xx(a, b) a,
 #include "node_kind.def"
-        std::monostate        ///< Terminate the variant type list.
+        node_kind_last
     >;
 
 /// Parse tree node is the same as a PEGTL basic node, but adds

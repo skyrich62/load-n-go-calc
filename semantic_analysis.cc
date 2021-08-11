@@ -54,7 +54,9 @@ semantic_analysis::semantic_analysis(Node::parent &parent)
 void
 semantic_analysis::push_scope(Node::parent &parent)
 {
-    stack_.emplace(std::make_unique<symbol_scope>(parent));
+    auto ptr = std::make_unique<symbol_scope>(parent);
+    stack_.emplace(std::move(ptr));
+
 }
 
 void

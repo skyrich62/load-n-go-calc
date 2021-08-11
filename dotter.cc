@@ -158,7 +158,12 @@ dot_visitor::pre_visit(node &n, scope &s)
     for (auto &var : n.children) {
         accept(*var);
     }
-    //print_link(n, s.parent_, "parent");
+    if (s.parent_scope_) {
+      print_link(n, *s.parent_scope_, "parent");
+    }
+    for (auto scope : s.subscopes_) {
+        print_link(n, *scope, "subscope");
+    }
 }
 
 void

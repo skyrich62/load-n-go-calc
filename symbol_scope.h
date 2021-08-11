@@ -58,11 +58,23 @@ public:
     /// Changes var to be a variable reference instead.
     static void add(std::string name, Node::node &var);
 private:
+
+    /// The symbol table for this scope.
     Symbols             table_;
+
+    /// The name of this scope, (i.e. for named compound statements).
     std::string         name_;
+
+    /// A pointer to the current scope node, used to add symbols.
     Node::Ptr           scope_;
+
+    /// A pointer to the previous symbol_scope or nullptr if at root.
     symbol_scope        *previous_ = nullptr;
+
+    /// A reference to the parent node for this scope, (root or compound stmt).
     Node::parent        &parent_;
+
+    /// A pointer to the current symbol_scope.
     static symbol_scope *current_;
 };
 

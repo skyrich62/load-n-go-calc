@@ -23,23 +23,15 @@
  * Rich Newman
  */
 
-#if !defined(xx) && !defined(xy)
-#error Must define xx or xy or both before including __FILE__
-#endif
-
 #ifndef xx
 #define xx(a,b)
-#endif
-
-#ifndef xy
-#define xy(a,b)
 #endif
 
 xx (number, value )
 xx (variable_ref, symbol_ref )
 xx (compound_statement, parent_stmt )
 xx (root, parent)
-xx (scope, nothing)
+xx (scope, scope_base)
 xx (variable, symbol_name)
 xx (if_statement, statement )
 xx (declaration, statement )
@@ -64,6 +56,4 @@ xx (unary_plus, operation)
 xx (unary_minus, operation)
 xx (function_call, operation)
 
-
 #undef xx
-#undef xy

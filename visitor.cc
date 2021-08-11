@@ -55,6 +55,16 @@ node_visitor::post_visit(node &, std::monostate &)
 {
 }
 
+void
+node_visitor::pre_visit(node &, node_kind_last &)
+{
+}
+
+void
+node_visitor::post_visit(node &, node_kind_last &)
+{
+}
+
 #define xx(a, b)  void node_visitor::pre_visit(node &n, a &) {  }
 #include "node_kind.def"
 #define xx(a, b)  void node_visitor::post_visit(node &n, a &) {  }
