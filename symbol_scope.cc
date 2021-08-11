@@ -32,17 +32,12 @@ symbol_scope* symbol_scope::current_ = nullptr;
 
 symbol_scope::symbol_scope(Node::parent &p) : parent_(p)
 {
-    auto &previous_scope = p.scope_;
     scope_ = std::make_unique<Node::node>();
     scope_ -> set_type<Node::scope>();
 
     Node::scope s;
     scope_ -> set_kind(std::move(s));
 
-    if (previous_scope) {
-        auto &par = std::get<Node::scope>(previous_scope->kind_);
-        par.subscopes_.emplace_back(scope_.get());
-    }
     previous_ = current_;
     current_ = this;
 }
@@ -52,6 +47,8 @@ symbol_scope::~symbol_scope()
     if (previous_) {
         auto &s = std::get<Node::scope>(scope_->kind_);
         s.parent_scope_ = previous_->scope_.get();
+        auto &par = std::get<Node::scope>(s.parent_scope_->kind_);
+        par.subscopes_.emplace_back(scope_.get());
     }
     if (!scope_->children.empty()) {
         parent_.scope_ = std::move(scope_);
