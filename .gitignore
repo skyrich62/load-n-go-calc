@@ -1,3 +1,4 @@
 *.o
 calc
 tools/
+*.dot
