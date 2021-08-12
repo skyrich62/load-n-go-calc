@@ -68,6 +68,11 @@ public:
 
     /// Pop a scope off the stack, and delete it.
     void pop_scope();
+
+private:
+    /// Add intrinsic functions and/or variables.
+    void add_intrinsics();
+
 private:
     using ScopePtr = std::unique_ptr<symbol_scope>;
     using ScopeStack = std::stack<ScopePtr, std::vector<ScopePtr>>;

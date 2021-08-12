@@ -37,6 +37,13 @@
 #include "dotter.h"
 
 #include <iostream>
+#include <fstream>
+
+static void print_dot(const std::string &name, Calc::Node::node &root)
+{
+    std::ofstream os(name);
+    Calc::print_dot(os, root);
+}
 
 int main(int argc, char *argv[])
 {
@@ -53,7 +60,7 @@ int main(int argc, char *argv[])
             if (root) {
                 std::cerr << "Parse successful." << std::endl;
                 root->set_kind<Calc::Node::root>({nullptr});
-                Calc::print_dot(std::cout, *root);
+                print_dot("calc-parse.dot", *root);
                 {
                     auto &parent = std::get<Calc::Node::root>(root->kind_);
                     Calc::semantic_analysis sem(parent);
@@ -61,7 +68,8 @@ int main(int argc, char *argv[])
                                               Calc::node_visitor::POST_VISIT);
                     trav.traverse(*root);
                 }
-                Calc::print_dot(std::cout, *root);
+
+                print_dot("calc-ast.dot", *root);
                 Calc::evaluator eval;
                 eval.accept(*root);
             } else {

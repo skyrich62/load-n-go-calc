@@ -42,6 +42,11 @@ evaluator::pre_visit(node &n, variable&)
 }
 
 void
+evaluator::pre_visit(node &n, function&)
+{
+}
+
+void
 evaluator::pre_visit(node &n, root &)
 {
     auto &c = n.children;

@@ -28,6 +28,7 @@
 
 #include <tao/pegtl/contrib/parse_tree.hpp>
 #include <variant>
+#include <functional>
 
 template< typename T, typename U> struct is_valid;
 
@@ -80,6 +81,11 @@ struct scope_base {
 
     /// Subscopes of this scope if any.
     std::vector<node *> subscopes_;
+};
+
+/// A function node kind
+struct function_base : public symbol_name, public scope_base {
+    std::function<int(int)> intrinsic_;
 };
 
 /// Used as a sentinel to end the list of variants.

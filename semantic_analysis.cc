@@ -49,6 +49,31 @@ checkKeyword(const std::string &name)
 semantic_analysis::semantic_analysis(Node::parent &parent)
 {
     push_scope(parent);
+    add_intrinsics();
+}
+
+void
+semantic_analysis::add_intrinsics()
+{
+    symbol_scope::add_intrinsic(
+        [](int x)
+        {
+            if (x < 0) {
+                return -x;
+            }
+            return x;
+        }, "abs");
+    symbol_scope::add_intrinsic(
+        [](int x)
+        {
+            if (x < 0) {
+                return -1;
+            }
+            if (x > 0) {
+                return 1;
+            }
+            return 0;
+        }, "sgn");
 }
 
 void

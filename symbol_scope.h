@@ -28,6 +28,8 @@
 #define SYMBOL_SCOPE_H_INCLUDED
 
 #include <map>
+#include <functional>
+
 #include "node.h"
 
 namespace Calc {
@@ -56,7 +58,19 @@ public:
     /// @param var the node which declares the variable.
     /// Creates a new variable node, and adds it to the current scope.
     /// Changes var to be a variable reference instead.
-    static void add(std::string name, Node::node &var);
+    static void add(const std::string &name, Node::node &var);
+
+    /// Get a reference to the current scope node.
+    auto& scope()                           { return *scope_; }
+
+    /// Get the current symbol scope
+    static auto current()                   { return current_; }
+
+    /// Add an intrinsic function to the current scope
+    /// @param func The function to call
+    /// @param name The name of the function.
+    static void add_intrinsic(std::function<int(int)> func,
+                              const std::string &name);
 private:
 
     /// The symbol table for this scope.

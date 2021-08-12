@@ -80,18 +80,33 @@ symbol_scope::lookup(const std::string &name)
 }
 
 void
-symbol_scope::add(std::string name, Node::node &var)
+symbol_scope::add(const std::string &name, Node::node &var)
 {
 
     auto node = std::make_unique<Node::node>();
     node->m_begin = var.m_begin;
     node->m_end   = var.m_end;
-    node->set_kind(Node::variable{name});
+    auto n = name;    /// must make a copy.
+    node->set_kind(Node::variable{n});
     node->set_type<Node::variable>();
 
     var.set_kind(Node::variable_ref{ node.get() });
     var.set_type<Node::variable_ref>( );
     var.remove_content();
+    current_->table_[name] = node.get();
+    current_->scope_->children.emplace_back(std::move(node));
+}
+
+void
+symbol_scope::add_intrinsic(std::function<int(int)> func,
+              const std::string &name)
+{
+    auto node = std::make_unique<Node::node>();
+    node->set_type<Node::function>();
+    Node::function f;
+    f.name_ = name;
+    f.intrinsic_ = func;
+    node->set_kind(f);
     current_->table_[name] = node.get();
     current_->scope_->children.emplace_back(std::move(node));
 }

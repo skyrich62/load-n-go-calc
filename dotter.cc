@@ -213,6 +213,12 @@ dot_visitor::pre_visit_operation(node &n)
 }
 
 void
+dot_visitor::pre_visit(node &n, function &f)
+{
+    print_node(n);
+}
+
+void
 dot_visitor::pre_visit(node &n, function_call &)
 {
     print_node(n);
