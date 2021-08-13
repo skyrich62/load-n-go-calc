@@ -58,7 +58,7 @@ evaluator::pre_visit(node &n, root &)
 void
 evaluator::pre_visit(node &n, variable_ref &var)
 {
-    auto ptr = var.variable_;
+    auto ptr = var.symbol_;
     set_result(values_[ptr]);
 }
 
@@ -94,7 +94,7 @@ void
 evaluator::pre_visit(node &n, assignment_statement &)
 {
     accept(*n.children[1]);
-    auto var = std::get<variable_ref>(n.children[0]->kind_).variable_;
+    auto var = std::get<variable_ref>(n.children[0]->kind_).symbol_;
     auto name = std::get<variable>(var->kind_).name_;
     values_[var] = result_;
     std::cerr << "Result: " << name << " = " << result_ << std::endl;
@@ -325,13 +325,14 @@ evaluator::pre_visit(node &n, greater_or_equal &)
 }
 
 void
-evaluator::pre_visit(node &n, function_call &f)
+evaluator::pre_visit(node &n, function_call &fc)
 {
-    accept(*n.children[1]);
+    accept(*n.children[0]);
     auto operand = result_;
-    auto &node = std::get<variable_ref>(n.children[0]->kind_).variable_;
-    auto func = std::get<function>(node->kind_).intrinsic_;
-    set_result(func(operand));
+    auto func = std::get<function>(fc.symbol_->kind_).intrinsic_;
+    if (func) {
+        set_result(func(operand));
+    }
 }
 
 } // namespace Calc

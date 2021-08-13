@@ -54,7 +54,7 @@ xx (logical_or_else, operation)
 xx (modulus, operation)
 xx (unary_plus, operation)
 xx (unary_minus, operation)
-xx (function_call, operation)
+xx (function_call, function_call_base)
 xx (function, function_base)
 
 #undef xx

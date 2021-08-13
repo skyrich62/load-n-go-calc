@@ -90,6 +90,8 @@ node_decorator::node_decorator(const node &n)
     } else if (std::holds_alternative<function>(kind)) {
         color_ = "red";
         style_="square";
+    } else if (std::holds_alternative<number>(kind)) {
+        color_ = "orange";
     }
     /// @todo figure out how to handle statements easily.
 }
@@ -140,6 +142,7 @@ dot_visitor::print_node(node &n, const char *color)
     std::string style;
     std::string name;
 
+    /// @todo  A better way of extracting this information
     if (std::holds_alternative<variable>(n.kind_)) {
         auto var = std::get<variable>(n.kind_);
         name = "Var: ";
@@ -151,6 +154,12 @@ dot_visitor::print_node(node &n, const char *color)
         name += func.name_;
         style="box";
         color = "red";
+    }
+    if (std::holds_alternative<number>(n.kind_)) {
+        std::ostringstream os;
+        os << std::get<number>(n.kind_).value_;
+        name = os.str();
+        color = "orange";
     }
     os_ << "  x" << &n
         << " [color=" << color << ", fontcolor=" << color;
@@ -192,15 +201,20 @@ void
 dot_visitor::pre_visit(node &n, variable_ref &r)
 {
     print_node(n);
-    print_link(n, *r.variable_, "variable", varColor);
+    print_link(n, *r.symbol_, "variable", varColor);
 }
 
 void
 dot_visitor::pre_visit(node &n, scope &s)
 {
     print_node(n);
-    print_links(n, "variable", varColor);
     for (auto &var : n.children) {
+        auto isVar = var->is_type<variable>();
+        if (isVar) {
+            print_link(n, *var, "variable", varColor);
+        } else {
+            print_link(n, *var, "function", "red");
+        }
         accept(*var);
     }
     if (s.parent_scope_) {
@@ -264,15 +278,11 @@ dot_visitor::pre_visit(node &n, function &f)
 }
 
 void
-dot_visitor::pre_visit(node &n, function_call &)
+dot_visitor::pre_visit(node &n, function_call &fc)
 {
     print_node(n);
-    print_link(n, *n.children[0], "function");
-    for (auto i = 1u; i < n.children.size(); ++i) {
-        std::ostringstream os;
-        os << "arg #" << i;
-        print_link(n, *n.children[i], os.str());
-    }
+    print_link(n, *fc.symbol_, "function", "red");
+    print_links(n, "argument");
 }
 
 void

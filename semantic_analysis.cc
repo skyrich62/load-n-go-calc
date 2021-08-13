@@ -93,6 +93,15 @@ semantic_analysis::pop_scope()
 void
 semantic_analysis::pre_visit(node &n, function_call &fc)
 {
+    // First, capture the function name node, then delete it from
+    // the children.  Find the function associated with the name,
+    // and put it in the function_call node.
+    auto fnode = std::move(n.children[0]);
+    n.children.erase(n.children.begin());
+    auto &name = std::get<variable>(fnode->kind_).name_;
+    checkKeyword(name);
+    auto r = symbol_scope::lookup(name);
+    fc.symbol_ = r;
 }
 
 void

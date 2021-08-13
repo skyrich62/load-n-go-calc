@@ -56,7 +56,7 @@ struct value {
 
 /// A reference to a symbol or variable.
 struct symbol_ref {
-    node *variable_ = nullptr;
+    node *symbol_ = nullptr;
 };
 
 /// An operation of some kind.
@@ -87,6 +87,9 @@ struct scope_base {
 struct function_base : public symbol_name, public scope_base {
     std::function<int(int)> intrinsic_;
 };
+
+/// A function call base node kind
+struct function_call_base : public operation, public symbol_ref { };
 
 /// Used as a sentinel to end the list of variants.
 struct node_kind_last { };
