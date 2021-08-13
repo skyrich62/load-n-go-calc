@@ -91,6 +91,11 @@ semantic_analysis::pop_scope()
 }
 
 void
+semantic_analysis::pre_visit(node &n, function_call &fc)
+{
+}
+
+void
 semantic_analysis::pre_visit(node &n, declaration &)
 {
     SHOW;

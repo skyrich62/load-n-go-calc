@@ -63,6 +63,12 @@ public:
     /// Visit a symbol node.
     void pre_visit(Node::node &, Node::variable &) override;
 
+    /// Visit a function call
+    /// @todo Lookup the symbol, (from the 1st child node), and attach the
+    /// proper function to the function_call node, then delete the 1st
+    /// child node.
+    void pre_visit(Node::node &, Node::function_call &) override;
+
     /// Push a new scope onto the symbol_scope stack.
     void push_scope(Node::parent &parent);
 
