@@ -26,16 +26,11 @@
 #ifndef NODE_H_INCLUDED
 #define NODE_H_INCLUDED
 
+#include "is_valid.h"
+
 #include <tao/pegtl/contrib/parse_tree.hpp>
 #include <variant>
 #include <functional>
-
-template< typename T, typename U> struct is_valid;
-
-template< typename T, typename... Ts>
-struct is_valid<T, std::variant< Ts... > > :
-std::bool_constant< (std::is_same_v< T, Ts > || ...) >
-{ };
 
 namespace Calc::Node {
 struct node;

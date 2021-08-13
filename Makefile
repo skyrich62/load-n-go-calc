@@ -14,6 +14,7 @@ INCS = \
     symbol_scope.h \
     grammar.h \
     node.h \
+    is_valid.h \
     overloaded.h
 
 OBJS = \

@@ -27,14 +27,13 @@
 #include "dotter.h"
 #include "visitor.h"
 #include "traversal.h"
-
-#include <iostream>
-#define SHOW std::cout << __PRETTY_FUNCTION__ << std::endl;
+#include "overloaded.h"
 
 namespace Calc {
 
 const char *defaultColor = "black";
-const char *varColor     = "purple";
+const char *varColor = "purple";
+const char *funcColor = "red";
 
 using namespace Calc::Node;
 
@@ -44,7 +43,7 @@ public:
     dot_visitor(std::ostream &os) : os_(os) { }
     dot_visitor(const dot_visitor &) = delete;
     dot_visitor& operator=(const dot_visitor &) = delete;
-    void print_node(node &n, const char *color = defaultColor);
+    void print_node(node &n);
 
 #define xx(a, b) void pre_visit(node &n, a &) override;
 #include "node_kind.def"
@@ -57,7 +56,8 @@ private:
     void print_link(const node &from,
                     const node &to,
                     const std::string_view s,
-                    const char *color = defaultColor);
+                    const char *color = defaultColor,
+                    const char *style = "solid");
     void pre_visit_operation(node &n);
     void print_links(const node &n,
                      const LinkNames &names,
@@ -73,38 +73,40 @@ class node_decorator
 public:
     node_decorator(const node &n);
     std::string get_color() const            { return color_; }
-    std::string get_style() const            { return style_; }
+    std::string get_shape() const            { return shape_; }
     std::string get_peripheries() const      { return peripheries_; }
 
 private:
-    std::string color_{"black"};
-    std::string style_{"ellipse"};
+    std::string color_{defaultColor};
+    std::string shape_{"ellipse"};
     std::string peripheries_{"1"};
 };
 
 node_decorator::node_decorator(const node &n)
 {
     auto &kind = n.kind_;
-    if (std::holds_alternative<variable>(kind)) {
-        color_ = "purple";
-    } else if (std::holds_alternative<function>(kind)) {
-        color_ = "red";
-        style_="square";
-    } else if (std::holds_alternative<number>(kind)) {
-        color_ = "orange";
-    }
-    /// @todo figure out how to handle statements easily.
+    std::visit(overloaded{
+        [this](const number&)    { color_ = "orange"; },
+        [this](const variable&)  { color_ = varColor; },
+        [this](const statement&) { peripheries_ = "2"; },
+        [this](const scope&)     { peripheries_ = "2"; shape_ = "box"; },
+        [this](const statement&) { peripheries_ = "2"; },
+        [this](const function&)  { color_ = funcColor ; shape_ = "box"; },
+        [](const auto &arg)      { },
+        },
+        kind);
 }
 
 void
 dot_visitor::print_link(const node &from,
                         const node &to,
                         std::string_view s,
-                        const char *color)
+                        const char *color, const char *style)
 {
     os_ << "  x" << &from << " -> x" << &to;
     if (!s.empty()) {
         os_ << " [color= "<< color << ", fontcolor= " << color
+            << ", style = " << style
             << ", label=\"" << s << "\"]";
     }
     os_ << '\n';
@@ -137,11 +139,12 @@ dot_visitor::print_links(const node &n,
 }
 
 void
-dot_visitor::print_node(node &n, const char *color)
+dot_visitor::print_node(node &n)
 {
-    std::string style;
     std::string name;
+    std::string shape;
 
+    node_decorator decorator(n);
     /// @todo  A better way of extracting this information
     if (std::holds_alternative<variable>(n.kind_)) {
         auto var = std::get<variable>(n.kind_);
@@ -152,20 +155,17 @@ dot_visitor::print_node(node &n, const char *color)
         auto func = std::get<function>(n.kind_);
         name = "Func: ";
         name += func.name_;
-        style="box";
-        color = "red";
     }
     if (std::holds_alternative<number>(n.kind_)) {
         std::ostringstream os;
         os << std::get<number>(n.kind_).value_;
         name = os.str();
-        color = "orange";
     }
     os_ << "  x" << &n
-        << " [color=" << color << ", fontcolor=" << color;
-    if (!style.empty()) {
-        os_ << ", shape=" << style;
-    }
+        << " [color=" << decorator.get_color()
+        << ", fontcolor=" << decorator.get_color();
+    os_ << ", shape=" << decorator.get_shape();
+    os_ << ", peripheries=" << decorator.get_peripheries();
     os_ << ", label=\"";
     auto s = n.is_root() ? "ROOT" : std::string(n.type);
     TAO_PEGTL_NAMESPACE::parse_tree::internal::escape(os_, s);
@@ -213,12 +213,12 @@ dot_visitor::pre_visit(node &n, scope &s)
         if (isVar) {
             print_link(n, *var, "variable", varColor);
         } else {
-            print_link(n, *var, "function", "red");
+            print_link(n, *var, "function", funcColor);
         }
         accept(*var);
     }
     if (s.parent_scope_) {
-      print_link(n, *s.parent_scope_, "parent");
+      print_link(n, *s.parent_scope_, "parent", defaultColor, "dotted");
     }
     for (auto scope : s.subscopes_) {
         print_link(n, *scope, "subscope");
@@ -235,7 +235,7 @@ dot_visitor::pre_visit(node &n, declaration &d)
 void
 dot_visitor::pre_visit(node &n, variable &)
 {
-    print_node(n, varColor);
+    print_node(n);
 }
 
 void
