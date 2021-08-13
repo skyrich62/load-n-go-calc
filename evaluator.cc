@@ -327,25 +327,11 @@ evaluator::pre_visit(node &n, greater_or_equal &)
 void
 evaluator::pre_visit(node &n, function_call &f)
 {
-    /*
     accept(*n.children[1]);
     auto operand = result_;
-    auto func = std::get<variable_ref>(n.children[0]->kind_).variable;
-    if (func == "abs") {
-        set_result(abs(operand));
-    } else if (func == "sgn") {
-        if (operand < 0) {
-            set_result(-1);
-            return;
-        } else if (operand > 0) {
-            set_result(1);
-            return;
-        }
-        set_result(0);
-    }
-    std::cerr << "Unknown function: " << func << " -- ignored.\n";
-    set_result(operand);
-    */
+    auto &node = std::get<variable_ref>(n.children[0]->kind_).variable_;
+    auto func = std::get<function>(node->kind_).intrinsic_;
+    set_result(func(operand));
 }
 
 } // namespace Calc

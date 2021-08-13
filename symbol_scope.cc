@@ -106,7 +106,7 @@ symbol_scope::add_intrinsic(std::function<int(int)> func,
     Node::function f;
     f.name_ = name;
     f.intrinsic_ = func;
-    node->set_kind(f);
+    node->set_kind(std::move(f));
     current_->table_[name] = node.get();
     current_->scope_->children.emplace_back(std::move(node));
 }

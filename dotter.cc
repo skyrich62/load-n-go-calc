@@ -28,6 +28,9 @@
 #include "visitor.h"
 #include "traversal.h"
 
+#include <iostream>
+#define SHOW std::cout << __PRETTY_FUNCTION__ << std::endl;
+
 namespace Calc {
 
 const char *defaultColor = "black";
@@ -64,6 +67,32 @@ private:
                      const char *color = defaultColor);
 
 };
+
+class node_decorator
+{
+public:
+    node_decorator(const node &n);
+    std::string get_color() const            { return color_; }
+    std::string get_style() const            { return style_; }
+    std::string get_peripheries() const      { return peripheries_; }
+
+private:
+    std::string color_{"black"};
+    std::string style_{"ellipse"};
+    std::string peripheries_{"1"};
+};
+
+node_decorator::node_decorator(const node &n)
+{
+    auto &kind = n.kind_;
+    if (std::holds_alternative<variable>(kind)) {
+        color_ = "purple";
+    } else if (std::holds_alternative<function>(kind)) {
+        color_ = "red";
+        style_="square";
+    }
+    /// @todo figure out how to handle statements easily.
+}
 
 void
 dot_visitor::print_link(const node &from,
@@ -108,15 +137,31 @@ dot_visitor::print_links(const node &n,
 void
 dot_visitor::print_node(node &n, const char *color)
 {
+    std::string style;
+    std::string name;
+
+    if (std::holds_alternative<variable>(n.kind_)) {
+        auto var = std::get<variable>(n.kind_);
+        name = "Var: ";
+        name += var.name_;
+    }
+    if (std::holds_alternative<function>(n.kind_)) {
+        auto func = std::get<function>(n.kind_);
+        name = "Func: ";
+        name += func.name_;
+        style="box";
+        color = "red";
+    }
     os_ << "  x" << &n
-        << " [color= " << color << ", fontcolor=" << color
-        << ", label=\"";
+        << " [color=" << color << ", fontcolor=" << color;
+    if (!style.empty()) {
+        os_ << ", shape=" << style;
+    }
+    os_ << ", label=\"";
     auto s = n.is_root() ? "ROOT" : std::string(n.type);
     TAO_PEGTL_NAMESPACE::parse_tree::internal::escape(os_, s);
-    if (n.has_content()) {
-        os_ << "\\n\\\"";
-        TAO_PEGTL_NAMESPACE::parse_tree::internal::escape(os_, n.string_view());
-        os_ << "\\\"";
+    if (!name.empty()) {
+        os_ << "\\n " << name;
     }
     os_ << "\" ]\n";
 }
