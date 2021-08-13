@@ -27,9 +27,10 @@
 #include <iostream>
 #include <set>
 
-#define SHOW // std::cerr << __PRETTY_FUNCTION__ << std::endl
+#include <CompuBrite/CheckPoint.h>
 
 namespace Calc {
+namespace cbi = CompuBrite;
 
 using namespace Calc::Node;
 
@@ -80,13 +81,21 @@ void
 semantic_analysis::push_scope(Node::parent &parent)
 {
     auto ptr = std::make_unique<symbol_scope>(parent);
+    cbi::CheckPoint cp("semantic_analysis");
+    cp.print(CBI_HERE, "New scope: ", ptr.get());
     stack_.emplace(std::move(ptr));
-
 }
 
 void
 semantic_analysis::pop_scope()
 {
+    cbi::CheckPoint cp("semantic_analysis");
+    if (stack_.empty()) {
+        cp.hit(CBI_HERE, "Stack is empty, shouldn't have happened!");
+        return;
+    }
+    auto &ptr = stack_.top();
+    cp.print(CBI_HERE, "Ptr = ", ptr.get());
     stack_.pop();
 }
 
@@ -107,7 +116,6 @@ semantic_analysis::pre_visit(node &n, function_call &fc)
 void
 semantic_analysis::pre_visit(node &n, declaration &)
 {
-    SHOW;
     traversal_->disableSubTree();
     auto &child = n.children[0];
     auto &var = std::get<variable>(child->kind_).name_;
@@ -119,7 +127,6 @@ void
 semantic_analysis::pre_visit(node &n, compound_statement &c)
 {
     push_scope(c);
-    SHOW;
 }
 
 void
@@ -131,7 +138,6 @@ semantic_analysis::post_visit(node &, compound_statement &c)
 void
 semantic_analysis::pre_visit(node &n, variable &)
 {
-    SHOW;
     auto &name = std::get<variable>(n.kind_).name_;
     checkKeyword(name);
     auto r = symbol_scope::lookup(name);

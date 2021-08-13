@@ -25,25 +25,34 @@
 
 #include "symbol_scope.h"
 
+#include <CompuBrite/CheckPoint.h>
+
 namespace Calc {
 
+namespace cbi = CompuBrite;
 
 symbol_scope* symbol_scope::current_ = nullptr;
 
 symbol_scope::symbol_scope(Node::parent &p) : parent_(p)
 {
+    cbi::CheckPoint cp("symbol_scope");
+    previous_ = current_;
+    current_ = this;
+
+    cp.print(CBI_HERE, "previous_ = ", previous_, ", current_ = ", current_, '\n');
     scope_ = std::make_unique<Node::node>();
     scope_ -> set_type<Node::scope>();
 
     Node::scope s;
     scope_ -> set_kind(std::move(s));
 
-    previous_ = current_;
-    current_ = this;
 }
 
 symbol_scope::~symbol_scope()
 {
+    cbi::CheckPoint cp("symbol_scope");
+    cp.print(CBI_HERE, "previous_ = ", previous_, ", current_ = ", current_, '\n');
+    current_ = previous_;
     if (previous_) {
         auto &s = std::get<Node::scope>(scope_->kind_);
         s.parent_scope_ = previous_->scope_.get();
@@ -53,23 +62,25 @@ symbol_scope::~symbol_scope()
     if (!scope_->children.empty()) {
         parent_.scope_ = std::move(scope_);
     }
-    current_ = previous_;
 }
 
 Node::node*
 symbol_scope::lookup(const std::string &name)
 {
-    auto frame = current_;
-    while (frame) {
-        try {
-            return frame->table_.at(name);
-        } catch (const std::out_of_range &) {
-            frame = frame->previous_;
+    cbi::CheckPoint cp("lookup");
+    for (auto frame = current_; frame != nullptr; frame = frame->previous_) {
+        auto found = frame->table_.find(name);
+        if (found == frame->table_.end()) {
+            cp.print(CBI_HERE, "Frame = ", frame);
+            continue;
         }
-    };
+        cp.print(CBI_HERE, "====> Frame: ", frame, ", Found: ", found->first, ": ", found->second);
+        return found->second;
+    }
     // If we got here, we can't find the symbol. Insert a new symbol in the
     // current frame, add it to the current scope, and return that value.
     // This is an implicit declaration.
+    cp.print(CBI_HERE, "Inserting a new node for ", name);
     auto node = std::make_unique<Node::node>();
     auto ptr = node.get();
     node->set_kind(Node::variable{name});
@@ -82,7 +93,7 @@ symbol_scope::lookup(const std::string &name)
 void
 symbol_scope::add(const std::string &name, Node::node &var)
 {
-
+    cbi::CheckPoint cp("add");
     auto node = std::make_unique<Node::node>();
     node->m_begin = var.m_begin;
     node->m_end   = var.m_end;
@@ -93,7 +104,8 @@ symbol_scope::add(const std::string &name, Node::node &var)
     var.set_kind(Node::variable_ref{ node.get() });
     var.set_type<Node::variable_ref>( );
     var.remove_content();
-    current_->table_[name] = node.get();
+    cp.print(CBI_HERE, "Adding ", n, ": ", node.get(), ", to frame: ", current_);
+    current_->table_[n] = node.get();
     current_->scope_->children.emplace_back(std::move(node));
 }
 

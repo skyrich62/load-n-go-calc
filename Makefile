@@ -1,5 +1,5 @@
 CXX = /usr/local/gcc-9.2.0/bin/g++
-CXXFLAGS = -g -I ../PEGTL/include -std=c++17
+CXXFLAGS = -g -I ../PEGTL/include -I ../CBIUtil/include -std=c++17 -DCBI_CHECKPOINTS -gdwarf-2
 LXXFLAGS = -g
 
 %.E: %.cc
@@ -25,12 +25,14 @@ OBJS = \
     visitor.o \
     semantic_analysis.o
 
+LIBS = ../CBIUtil/libcbiutil.a
+
 PROGS = calc
 
 all: calc
 
 calc: $(OBJS) $(INCS)
-	$(CXX) $(LXXFLAGS) $(OBJS) -o calc
+	$(CXX) $(LXXFLAGS) $(OBJS) $(LIBS) -o calc
 
 clean:
 	rm -rf *.o $(PROGS)
