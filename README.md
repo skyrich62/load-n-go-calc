@@ -71,19 +71,19 @@ There is no display for the other statement types.
 The following operators are understood:
 * "+", unary and binary plus / addition, (e.g. +a; and a + b;)
 * "-", unary and binary minus / subtraction, (e.g. -a; and a - b;)
-* "*" multiplication
-* "/" division
-* "%" modulus
-* "<" less than
-* ">" greater than
-* ">=" greater then or equal to
-* "<=" less than or equal to
-* "=" equal to, (not to be confused with assignment, ":="
-* "!=" not equal to
-* "and" logical "and".  Both the right- and left- side are evaluated. (see "and then")
-* "or" logical "or".  Bothe the right- and left- side are evaluated. (see "or else")
-* "and then" short circuiting logical "and" if the left side is 0, the right side is not evaluated.
-* "or else" short circuiting logical "or".  If the left side is non-zero, the right side is not evaluated.
+* "*", multiplication
+* "/", division
+* "%", modulus
+* "<", less than
+* ">", greater than
+* ">=", greater then or equal to
+* "<=", less than or equal to
+* "=", equal to, (not to be confused with assignment, ":="
+* "!=", not equal to
+* "and", logical and.  Both the right- and left- side are evaluated. (see "and then")
+* "or", logical or.  Both the right- and left- side are evaluated. (see "or else")
+* "and then", short circuiting logical and if the left side is 0, the right side is not evaluated.
+* "or else", short circuiting logical or.  If the left side is non-zero, the right side is not evaluated.
 
 # Intrinsic funcitons
 
