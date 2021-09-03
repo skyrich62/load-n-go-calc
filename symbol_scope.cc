@@ -54,10 +54,10 @@ symbol_scope::~symbol_scope()
     cp.print(CBI_HERE, "previous_ = ", previous_, ", current_ = ", current_, '\n');
     current_ = previous_;
     if (previous_) {
-        auto &s = std::get<Node::scope>(scope_->kind_);
-        s.parent_scope_ = previous_->scope_.get();
-        auto &par = std::get<Node::scope>(s.parent_scope_->kind_);
-        par.subscopes_.emplace_back(scope_.get());
+        auto s = scope().get_kind<Node::scope>();
+        s->parent_scope_ = previous_->scope_.get();
+        auto par = s->parent_scope_->get_kind<Node::scope>();
+        par->subscopes_.emplace_back(scope_.get());
     }
     if (!scope_->children.empty()) {
         parent_.scope_ = std::move(scope_);

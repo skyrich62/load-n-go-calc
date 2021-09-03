@@ -117,13 +117,23 @@ struct node : public tao::pegtl::parse_tree::basic_node<node>
     node& operator=(const node &) = delete;
 
     template <typename U>
-    void set_kind( U&& u) noexcept
+    U* set_kind( U&& u) noexcept
     {
         if constexpr (is_valid<U, node_kind>::value) {
             kind_ = std::forward<U>(u);
         } else {
             kind_ = std::monostate{};
         }
+        return this->get_kind<U>();
+    }
+
+    template <typename U>
+    U* get_kind() noexcept
+    {
+        if (std::holds_alternative<U>(kind_)) {
+            return &std::get<U>(kind_);
+        }
+        return nullptr;
     }
 
     node_kind kind_;

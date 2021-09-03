@@ -107,7 +107,7 @@ semantic_analysis::pre_visit(node &n, function_call &fc)
     // and put it in the function_call node.
     auto fnode = std::move(n.children[0]);
     n.children.erase(n.children.begin());
-    auto &name = std::get<variable>(fnode->kind_).name_;
+    auto &name = fnode->get_kind<variable>()->name_;
     checkKeyword(name);
     auto r = symbol_scope::lookup(name);
     fc.symbol_ = r;
@@ -118,7 +118,7 @@ semantic_analysis::pre_visit(node &n, declaration &)
 {
     traversal_->disableSubTree();
     auto &child = n.children[0];
-    auto &var = std::get<variable>(child->kind_).name_;
+    auto &var = child->get_kind<variable>()->name_;
     checkKeyword(var);
     symbol_scope::add(var, *child);
 }
@@ -138,7 +138,7 @@ semantic_analysis::post_visit(node &, compound_statement &c)
 void
 semantic_analysis::pre_visit(node &n, variable &)
 {
-    auto &name = std::get<variable>(n.kind_).name_;
+    auto &name = n.get_kind<variable>()->name_;
     checkKeyword(name);
     auto r = symbol_scope::lookup(name);
     n.set_kind(variable_ref{r});

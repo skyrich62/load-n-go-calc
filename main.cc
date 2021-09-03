@@ -62,8 +62,8 @@ int main(int argc, char *argv[])
                 root->set_kind<Calc::Node::root>({nullptr});
                 print_dot("calc-parse.dot", *root);
                 {
-                    auto &parent = std::get<Calc::Node::root>(root->kind_);
-                    Calc::semantic_analysis sem(parent);
+                    auto parent = root->get_kind<Calc::Node::root>();
+                    Calc::semantic_analysis sem(*parent);
                     Calc::traversal trav(sem, Calc::node_visitor::PRE_VISIT |
                                               Calc::node_visitor::POST_VISIT);
                     trav.traverse(*root);

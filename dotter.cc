@@ -146,19 +146,15 @@ dot_visitor::print_node(node &n)
 
     node_decorator decorator(n);
     /// @todo  A better way of extracting this information
-    if (std::holds_alternative<variable>(n.kind_)) {
-        auto var = std::get<variable>(n.kind_);
+    if (auto var = n.get_kind<variable>(); var) {
         name = "Var: ";
-        name += var.name_;
-    }
-    if (std::holds_alternative<function>(n.kind_)) {
-        auto func = std::get<function>(n.kind_);
+        name += var->name_;
+    } else if (auto func = n.get_kind<function>(); func) {
         name = "Func: ";
-        name += func.name_;
-    }
-    if (std::holds_alternative<number>(n.kind_)) {
+        name += func->name_;
+    } else if (auto num = n.get_kind<number>(); num) {
         std::ostringstream os;
-        os << std::get<number>(n.kind_).value_;
+        os << num->value_;
         name = os.str();
     }
     os_ << "  x" << &n
