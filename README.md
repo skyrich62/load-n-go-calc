@@ -8,31 +8,56 @@ complete solution, but rather an exercise to point out how to use a
 std::variant in the PEGTL parse tree node and a "cleaner way(tm)" of visiting
 the different variants.
 
-The input is currently only on the command line, and consists of simple
-statements, either an assignment statement, if-statement, block statement,
-declaration statement, or an expression statement.
+The input is currently only on the command line, and consists of compound
+statements, assignment statements, if-statements, block statements,
+declaration statements, loop statements, exit statements, or expression statements.
 
-Assignment statements have the form:
+## Assignment-statements have the form:
 
     variable := expression;
 
-Expression statements have the form:
+## Expression-statements have the form:
 
     expression;
 
-If-statements have the form:
+## If-statements have the form:
 
     if (condition) statement [else statement]
 
 The "else" clause is optional.  The condition is any expression.  If the result is 0 the condition is false, otherwise it is true.
 
-Declaration statemetns have the form:
+## Declaration-statemetns have the form:
 
     var variableName;
 
 Variables may be used without being defined, (in which case, they are implicitly defined.)
+
+## Loop-statements have two forms:
+### Top test loop statements have the form:
+
+   loop while expression Compound-statement
+   loop until expression Compound-statement
+   
+### Bottom test loop statements have the form:
+
+    loop Compound-statement while expression
+    loop Compound-statement until expression
     
-Compound Statements have the form:
+If the loop-statement contains a "while" clause, the loop will continue as long as the expression evalutates to a non-zero value.
+If the loop-statement contains an "until" clause, the loop will continue until the expression evaluates to a non-zero value.
+Top-test loops will never iterate, bottom-test loop statements will always iterate at least once.
+
+## Exit-statements have the form:
+
+    exit;
+    exit if expression;
+    
+ 
+ If there is an "if" clause, and it's expression evaluates to a non-zero value, then the immediately enclosing loop will be terminated.
+ If there is no "if" clause, then the immediately enclosing loop will be terinated.
+ Exit-statements are only allowed inside the body of a loop statement.  An error message will be put out otherwise.
+    
+## Compound-statements have the form:
 
     { statement; statement; statement; ... }
 
@@ -82,6 +107,7 @@ The following operators are understood:
 * "!=", not equal to
 * "and", logical and.  Both the right- and left- side are evaluated. (see "and then")
 * "or", logical or.  Both the right- and left- side are evaluated. (see "or else")
+* "not", logical not.
 * "and then", short circuiting logical and if the left side is 0, the right side is not evaluated.
 * "or else", short circuiting logical or.  If the left side is non-zero, the right side is not evaluated.
 
