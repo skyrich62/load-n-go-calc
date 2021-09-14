@@ -100,6 +100,39 @@ semantic_analysis::pop_scope()
 }
 
 void
+semantic_analysis::pre_visit(node &n, loop_top_test_statement &)
+{
+    ++loops_;
+}
+
+void
+semantic_analysis::pre_visit(node &n, loop_bottom_test_statement &)
+{
+    ++loops_;
+}
+
+void
+semantic_analysis::post_visit(node &n, loop_top_test_statement &)
+{
+    --loops_;
+}
+
+void
+semantic_analysis::post_visit(node &n, loop_bottom_test_statement &)
+{
+    --loops_;
+}
+
+void
+semantic_analysis::pre_visit(node &n, exit_statement &)
+{
+    if (loops_ == 0u) {
+        std::cerr << "Error: Exit statement is only allowed inside loop bodies."
+                  << std::endl;
+    }
+}
+
+void
 semantic_analysis::pre_visit(node &n, function_call &fc)
 {
     // First, capture the function name node, then delete it from

@@ -53,10 +53,13 @@ public:
     /// Set the result of the current evaluation.
     void set_result(int res)                { result_ = res; }
 
+    bool exiting(void) const                { return exiting_; }
+    void exiting(bool b)                    { exiting_ = b; }
 private:
     using ValueMap = std::map<Node::node*, int>;
     ValueMap values_;
     int      result_{0};
+    bool     exiting_{false};
 
 };
 } // namespace Calc

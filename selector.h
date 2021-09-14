@@ -27,9 +27,11 @@
 #define SELECTOR_H_INCLUDED
 
 #include "node.h"
+#include <CompuBrite/CheckPoint.h>
 
 namespace Calc::grammar {
 using Ptr = std::unique_ptr<Node::node>;
+namespace cbi = CompuBrite;
 
 /// Rearrange expressions to remove "factor", "term", and expression
 /// nodes, and put the tree in prefix form.
@@ -38,6 +40,10 @@ struct rearrange_expr : parse_tree::apply<rearrange_expr>
     template <typename... States>
     static void transform( Ptr &n, States&&... st)
     {
+        cbi::CheckPoint cp("rearrange_expr");
+        if (cp.active()) {
+            return;
+        }
         if (n->children.size() == 1) {
             n = std::move(n->children.back());
         } else if (n->children.size() == 2) {
@@ -115,10 +121,12 @@ struct assign_node_type : parse_tree::apply<assign_node_type>
     {
         try_type<decl_statement, Node::declaration>(n)                ||
         try_type<expression_statement, Node::expression_statement>(n) ||
+        try_type<exit_statement, Node::exit_statement>(n)             ||
         try_type<if_statement, Node::if_statement>(n)                 ||
         try_type<assignment_statement, Node::assignment_statement>(n) ||
         try_type<compound_statement, Node::compound_statement>(n)     ||
 
+        try_type<logical_negation, Node::logical_not>(n)              ||
         try_type<OR, Node::logical_or>(n)                             ||
         try_type<AND, Node::logical_and>(n)                           ||
         try_type<OR_ELSE, Node::logical_or_else>(n)                   ||
@@ -141,6 +149,62 @@ struct assign_node_type : parse_tree::apply<assign_node_type>
     }
 };
 
+using child_iterator = std::vector<Ptr>::iterator;
+
+static void
+rewrite_while(Ptr &n, child_iterator &w, child_iterator &cond)
+{
+    std::swap(*w, *cond);
+    n->children.erase(cond);
+}
+
+static void
+rewrite_until(Ptr &n, child_iterator &u, child_iterator &cond)
+{
+    // change the until to a NOT.
+    try_type<UNTIL, Node::logical_not>(*u);
+    // Make the condition the operand of the not.
+    (*u)->emplace_back(std::move(*cond));
+    // erase the now empty condition node.
+    n->children.erase(cond);
+}
+
+/// Rewrite loop statements
+struct rewrite_bottom_test_loop:
+    parse_tree::apply<rewrite_bottom_test_loop>
+{
+    template <typename ... States >
+    static void transform( Ptr &n, States&&... st)
+    {
+        try_type<bottom_test, Node::loop_bottom_test_statement>(n);
+        n->remove_content();
+        auto while_until = n->children.begin() + 1;
+        auto cond = while_until + 1;
+        if ((*while_until)->is_type<Calc::grammar::WHILE>()) {
+            rewrite_while(n, while_until, cond);
+        } else {
+            rewrite_until(n, while_until, cond);
+        }
+    }
+};
+
+struct rewrite_top_test_loop:
+    parse_tree::apply<rewrite_top_test_loop>
+{
+    template <typename ... States >
+    static void transform( Ptr &n, States&&... st)
+    {
+        try_type<top_test, Node::loop_top_test_statement>(n);
+        n->remove_content();
+        auto while_until = n->children.begin();
+        auto cond = while_until + 1;
+        if ((*while_until)->is_type<Calc::grammar::WHILE>()) {
+            rewrite_while(n, while_until, cond);
+        } else {
+            rewrite_until(n, while_until, cond);
+        }
+    }
+};
 
 /// Used to select which nodes are created.
 template <typename Rule>
@@ -162,6 +226,7 @@ using selector = parse_tree::selector<
     decl_statement,
     if_statement,
     assignment_statement,
+    exit_statement,
     expression_statement,
     compound_statement,
     addition,
@@ -178,10 +243,25 @@ using selector = parse_tree::selector<
     OR,
     AND_THEN,
     OR_ELSE,
+    logical_negation,
     modulus,
     unary_plus,
     unary_minus,
     function_call
+  >,
+
+  parse_tree::remove_content::on<
+      WHILE,
+      UNTIL
+  >,
+
+  /// Rewrite loop statements
+  rewrite_bottom_test_loop::on<
+    bottom_test
+  >,
+
+  rewrite_top_test_loop::on<
+    top_test
   >,
 
   /// Rearrange the expression sub-tree nodes.

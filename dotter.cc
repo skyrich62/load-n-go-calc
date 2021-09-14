@@ -194,6 +194,23 @@ dot_visitor::pre_visit(node &n, compound_statement &s)
 }
 
 void
+dot_visitor::pre_visit(node &n, loop_top_test_statement &l)
+{
+    print_node(n);
+    print_links(n, "children");
+    //LinkNames linkNames{"condition", "body"};
+    //print_links(n, linkNames);
+}
+
+void
+dot_visitor::pre_visit(node &n, loop_bottom_test_statement &l)
+{
+    print_node(n);
+    LinkNames linkNames{"body", "condition"};
+    print_links(n, linkNames);
+}
+
+void
 dot_visitor::pre_visit(node &n, variable_ref &r)
 {
     print_node(n);
@@ -300,6 +317,12 @@ dot_visitor::pre_visit(node &n, modulus &)
 }
 
 void
+dot_visitor::pre_visit(node &n, logical_not &)
+{
+    pre_visit_operation(n);
+}
+
+void
 dot_visitor::pre_visit(node &n, logical_or &)
 {
     pre_visit_operation(n);
@@ -389,6 +412,13 @@ dot_visitor::pre_visit(node &n, if_statement &s)
     print_node(n);
     LinkNames names{"condition", "then_clause", "else_clause"};
     print_links(n, names);
+}
+
+void
+dot_visitor::pre_visit(node &n, exit_statement &s)
+{
+    print_node(n);
+    print_links(n, "condition");
 }
 
 void

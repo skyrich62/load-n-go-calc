@@ -159,6 +159,9 @@ struct IF : keyword< 'i', 'f' > { };
 /// ELSE <- else !identifier_other
 struct ELSE : keyword< 'e', 'l', 's', 'e' > { };
 
+/// EXIT <- exit !identifier_other
+struct EXIT : keyword< 'e', 'x', 'i', 't' > { };
+
 /// THEN <- then !identifier_other
 struct THEN : keyword< 't', 'h', 'e', 'n' > { };
 
@@ -170,6 +173,18 @@ struct ANDkw : keyword< 'a', 'n', 'd' > { };
 
 /// VAR <- var !identifier_other
 struct VAR : keyword< 'v', 'a', 'r' > { };
+
+/// LOOP <- loop !identifier_other
+struct LOOP : keyword< 'l', 'o', 'o', 'p' > { };
+
+/// NOT <- not !identifier_other
+struct NOT : keyword< 'n', 'o', 't' > { };
+
+/// UNTIL <- until !identifier_other
+struct UNTIL : keyword < 'u', 'n', 't', 'i', 'l' > { };
+
+/// WHILE <- while !identifier_other
+struct WHILE : keyword < 'w', 'h', 'i', 'l', 'e' > { };
 
 /// AND <- ANDkw !(wsp THEN)
 struct AND : seq< ANDkw, not_at< wsp, THEN > > { };
@@ -183,8 +198,10 @@ struct OR : seq< ORkw, not_at< wsp, ELSE > > { };
 /// OR_ELSE
 struct OR_ELSE : seq< ORkw, wsp, ELSE > { };
 
-/// keywords <- IF / ELSE
-struct keywords: sor< IF, ELSE, OR, THEN, AND, VAR > { };
+/// keywords <- AND / ELSE / EXIT / IF / LOOP / NOT / OR / THEN / UNTIL /
+///             VAR / WHILE
+struct keywords:
+    sor< AND, ELSE, EXIT, IF, LOOP, NOT, OR, THEN, UNTIL, VAR, WHILE > { };
 
 /// logical_operator <- OR / AND / AND_THEN / OR_ELSE
 struct logical_operator : sor< AND_THEN, OR_ELSE, OR, AND > { };
@@ -230,9 +247,15 @@ struct term : list< factor, multiplying_operator, ws > { };
 /// parenthezised_expr <- LPAREN expression RPAREN
 struct parenthesized_expr : seq< LPAREN, wss, expression, wss, RPAREN > { };
 
-/// factor <- function_call / integer / symbol_name / parenthesized_expr
-struct factor :
-    sor< function_call, integer, symbol_name, parenthesized_expr > { };
+/// primary <- function_call / integer / symbol_name / parenthesized_expr
+struct primary :
+    sor< function_call, integer, symbol_name, parenthesized_expr> { };
+
+/// logical_negation <- NOT primary
+struct logical_negation: seq <NOT, wsp, primary> { };
+
+/// factor <- logical_negation / primary
+struct factor : sor< logical_negation, primary> { };
 
 
 /// relation <- simple_expression (relational_operator wss simple_expression)*
@@ -260,10 +283,15 @@ struct expression_statement : seq< expression, wss, SEMI > { };
 /// decl_statement <- VAR symbol_name ';'
 struct decl_statement : seq< VAR, wsp, symbol_name, wss, SEMI > { };
 
+/// exit_statement <- EXIT (IF expression)?
+struct exit_statement :
+    seq< EXIT, opt< wsp, IF, wsp, expression >, wss, SEMI> { };
+
 /// simple_statement <- (decl_statement / assignment_statement / expression_statement / if_statement) SEMI
 struct simple_statement :
     sor<
         decl_statement,
+        exit_statement,
         if_statement,
         assignment_statement,
         expression_statement
@@ -281,8 +309,34 @@ struct compound_statement :
         RBRACE
     > { };
 
-/// statement <- compound_statement / simple_statement
-struct statement : sor< compound_statement, simple_statement > { };
+/// while_test <- WHILE expression
+struct while_test :
+    seq< WHILE, wss, LPAREN, wss, expression, wss, RPAREN >
+    { };
+
+/// until_test <- WHILE expression
+struct until_test :
+    seq< UNTIL, wss, LPAREN, wss, expression, wss, RPAREN >
+    { };
+
+/// top_test <- WHILE / UNTIL expression compound statement
+struct top_test :
+    seq< sor< while_test, until_test >, wsp, compound_statement > { };
+
+struct bottom_test :
+    seq< compound_statement, wsp, sor< while_test, until_test>, wss, SEMI > { };
+
+/// loop_statement <- LOOP (top_test / bottom_test)
+/// A loop may have a loop_test at the top, or at the bottom, but not
+/// both.
+struct loop_statement :
+    seq<
+      LOOP, wsp, sor < top_test, bottom_test >
+    > { };
+
+/// statement <- loop_statement / compound_statement / simple_statement
+struct statement :
+    sor< loop_statement, compound_statement, simple_statement > { };
 
 /// grammar <- statement+ eolf
 struct grammar : seq< wss, plus< statement, wss >, eof > { };

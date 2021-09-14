@@ -63,6 +63,21 @@ public:
     /// Visit a symbol node.
     void pre_visit(Node::node &, Node::variable &) override;
 
+    /// Visit an exit statement
+    void pre_visit(Node::node &, Node::exit_statement&) override;
+
+    /// Visit a top test loop statement
+    void pre_visit(Node::node &, Node::loop_top_test_statement &) override;
+
+    /// Visit a bottomo test loop statement
+    void pre_visit(Node::node &, Node::loop_bottom_test_statement &) override;
+
+    /// Visit a top test loop statement
+    void post_visit(Node::node &, Node::loop_top_test_statement &) override;
+
+    /// Visit a bottomo test loop statement
+    void post_visit(Node::node &, Node::loop_bottom_test_statement &) override;
+
     /// Visit a function call
     /// @todo Lookup the symbol, (from the 1st child node), and attach the
     /// proper function to the function_call node, then delete the 1st
@@ -84,6 +99,7 @@ private:
     using ScopeStack = std::stack<ScopePtr, std::vector<ScopePtr>>;
 
     ScopeStack stack_;
+    size_t     loops_{0u};
 };
 
 } // namespace Calc

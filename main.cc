@@ -36,6 +36,7 @@
 #include "selector.h"
 #include "dotter.h"
 
+#include <CompuBrite/CheckPoint.h>
 #include <iostream>
 #include <fstream>
 
@@ -48,6 +49,7 @@ static void print_dot(const std::string &name, Calc::Node::node &root)
 int main(int argc, char *argv[])
 {
      using namespace tao::pegtl;
+     namespace cbi = CompuBrite;
 
      if (argc == 1) {
         std::cerr << "usage: calc <statements>\n";
@@ -55,12 +57,19 @@ int main(int argc, char *argv[])
      }
      for (auto i = 1u; i < argc; ++i) {
         try {
+            cbi::CheckPoint trace("trace");
+            if (trace.active()) {
+                argv_input in(argv, i);
+                complete_trace<Calc::grammar::grammar>(in);
+            }
             argv_input in(argv, i);
             auto root = parse_tree::parse<Calc::grammar::grammar, Calc::Node::node, Calc::grammar::selector>(in);
             if (root) {
                 std::cerr << "Parse successful." << std::endl;
                 root->set_kind<Calc::Node::root>({nullptr});
-                print_dot("calc-parse.dot", *root);
+                std::ofstream os("calc-parse.dot");
+                parse_tree::print_dot(os, *root);
+                //print_dot("calc-parse.dot", *root);
                 {
                     auto parent = root->get_kind<Calc::Node::root>();
                     Calc::semantic_analysis sem(*parent);
