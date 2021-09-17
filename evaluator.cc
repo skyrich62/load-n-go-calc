@@ -396,4 +396,9 @@ evaluator::pre_visit(node &n, function_call &fc)
     }
 }
 
+void
+evaluator::pre_visit(node &n, function_definition &fd)
+{
+}
+
 } // namespace Calc

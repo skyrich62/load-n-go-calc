@@ -28,6 +28,7 @@
 #endif
 
 xx (number, value )
+xx (function_definition, scope_base )
 xx (variable_ref, symbol_ref )
 xx (compound_statement, parent_stmt )
 xx (exit_statement, statement)

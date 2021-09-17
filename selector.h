@@ -223,6 +223,7 @@ using selector = parse_tree::selector<
 
   /// Remove the content and classify the nodes for these.
   assign_node_type::on<
+    function_definition,
     decl_statement,
     if_statement,
     assignment_statement,
@@ -251,8 +252,8 @@ using selector = parse_tree::selector<
   >,
 
   parse_tree::remove_content::on<
-      WHILE,
-      UNTIL
+    WHILE,
+    UNTIL
   >,
 
   /// Rewrite loop statements

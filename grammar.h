@@ -95,6 +95,9 @@ struct SEMI   : one< ';' > { };
 /// BANG <- '!'
 struct BANG   : one< '!' > { };
 
+/// COMMA <- ','
+struct COMMA  : one< ',' > { };
+
 /// unary_plus <- PLUS
 struct unary_plus : PLUS { };
 
@@ -174,6 +177,9 @@ struct ANDkw : keyword< 'a', 'n', 'd' > { };
 /// VAR <- var !identifier_other
 struct VAR : keyword< 'v', 'a', 'r' > { };
 
+/// DEF <- def !identifier_other
+struct DEF : keyword< 'd', 'e', 'f' > { };
+
 /// LOOP <- loop !identifier_other
 struct LOOP : keyword< 'l', 'o', 'o', 'p' > { };
 
@@ -198,10 +204,10 @@ struct OR : seq< ORkw, not_at< wsp, ELSE > > { };
 /// OR_ELSE
 struct OR_ELSE : seq< ORkw, wsp, ELSE > { };
 
-/// keywords <- AND / ELSE / EXIT / IF / LOOP / NOT / OR / THEN / UNTIL /
-///             VAR / WHILE
+/// keywords <- AND / DEF / ELSE / EXIT / IF / LOOP / NOT / OR / THEN /
+///             UNTIL / VAR / WHILE
 struct keywords:
-    sor< AND, ELSE, EXIT, IF, LOOP, NOT, OR, THEN, UNTIL, VAR, WHILE > { };
+    sor< AND, DEF, ELSE, EXIT, IF, LOOP, NOT, OR, THEN, UNTIL, VAR, WHILE > { };
 
 /// logical_operator <- OR / AND / AND_THEN / OR_ELSE
 struct logical_operator : sor< AND_THEN, OR_ELSE, OR, AND > { };
@@ -287,9 +293,12 @@ struct decl_statement : seq< VAR, wsp, symbol_name, wss, SEMI > { };
 struct exit_statement :
     seq< EXIT, opt< wsp, IF, wsp, expression >, wss, SEMI> { };
 
+struct function_definition;
+
 /// simple_statement <- (decl_statement / assignment_statement / expression_statement / if_statement) SEMI
 struct simple_statement :
     sor<
+        function_definition,
         decl_statement,
         exit_statement,
         if_statement,
@@ -307,6 +316,17 @@ struct compound_statement :
         LBRACE, wss,
         star< statement, wss >, wss,
         RBRACE
+    > { };
+
+/// function_definition <- function_name '(' parameters ')' '{' statement* '}'
+struct function_definition :
+    seq<
+      DEF, wss,
+      symbol_name, wss,
+      LPAREN, wss,
+      list< symbol_name, COMMA, ws>, wss,
+      RPAREN, wss,
+      compound_statement
     > { };
 
 /// while_test <- WHILE expression

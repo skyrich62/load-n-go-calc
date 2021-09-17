@@ -415,6 +415,13 @@ dot_visitor::pre_visit(node &n, if_statement &s)
 }
 
 void
+dot_visitor::pre_visit(node &n, function_definition &fd)
+{
+    print_node(n);
+    print_links(n, "parameters");
+}
+
+void
 dot_visitor::pre_visit(node &n, exit_statement &s)
 {
     print_node(n);
