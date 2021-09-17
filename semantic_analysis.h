@@ -54,11 +54,17 @@ public:
     /// Visit a declaration
     void pre_visit(Node::node &, Node::declaration &) override;
 
-    /// Visit a compound statement.  Evaluate each statement.
+    /// Visit a compound statement.
     void pre_visit(Node::node &, Node::compound_statement &) override;
 
     /// Visit compound statement, after visiting its children
     void post_visit(Node::node &, Node::compound_statement &) override;
+
+    /// Visit a compound statement.
+    void pre_visit(Node::node &, Node::function &) override;
+
+    /// Visit compound statement, after visiting its children
+    void post_visit(Node::node &, Node::function &) override;
 
     /// Visit a symbol node.
     void pre_visit(Node::node &, Node::variable &) override;

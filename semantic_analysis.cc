@@ -38,7 +38,8 @@ void
 checkKeyword(const std::string &name)
 {
     static std::set<std::string> keywords{
-        "if", "else", "and", "then", "or", "and", "var"
+        "if", "else", "and", "then", "or", "and", "var", "def", "exit",
+        "while", "until", "loop"
     };
 
     if (auto found = keywords.find(name); found != keywords.end())  {
@@ -164,6 +165,18 @@ semantic_analysis::pre_visit(node &n, compound_statement &c)
 
 void
 semantic_analysis::post_visit(node &, compound_statement &c)
+{
+    pop_scope();
+}
+
+void
+semantic_analysis::pre_visit(node &n, function &f)
+{
+    push_scope(f);
+}
+
+void
+semantic_analysis::post_visit(node &, function &)
 {
     pop_scope();
 }

@@ -120,6 +120,7 @@ struct assign_node_type : parse_tree::apply<assign_node_type>
     static void transform( Ptr &n, States&&... st)
     {
         try_type<decl_statement, Node::declaration>(n)                ||
+        try_type<function_definition, Node::function>(n)              ||
         try_type<expression_statement, Node::expression_statement>(n) ||
         try_type<exit_statement, Node::exit_statement>(n)             ||
         try_type<if_statement, Node::if_statement>(n)                 ||

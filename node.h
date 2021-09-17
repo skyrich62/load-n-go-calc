@@ -79,7 +79,7 @@ struct scope_base {
 };
 
 /// A function node kind
-struct function_base : public symbol_name, public scope_base {
+struct function_base : public symbol_name, public scope_base, public parent {
     std::function<int(int)> intrinsic_;
 };
 

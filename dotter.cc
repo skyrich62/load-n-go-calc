@@ -285,12 +285,6 @@ dot_visitor::pre_visit_operation(node &n)
 }
 
 void
-dot_visitor::pre_visit(node &n, function &f)
-{
-    print_node(n);
-}
-
-void
 dot_visitor::pre_visit(node &n, function_call &fc)
 {
     print_node(n);
@@ -415,9 +409,13 @@ dot_visitor::pre_visit(node &n, if_statement &s)
 }
 
 void
-dot_visitor::pre_visit(node &n, function_definition &fd)
+dot_visitor::pre_visit(node &n, function &fd)
 {
     print_node(n);
+    if (fd.scope_) {
+        accept(*fd.scope_);
+        print_link(n, *fd.scope_, "scope");
+    }
     print_links(n, "parameters");
 }
 
