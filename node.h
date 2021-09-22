@@ -76,6 +76,9 @@ struct scope_base {
 
     /// Subscopes of this scope if any.
     std::vector<node *> subscopes_;
+
+    /// Is this a function scope?
+    unsigned long function_: 1;
 };
 
 /// A function node kind

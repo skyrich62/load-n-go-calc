@@ -46,7 +46,7 @@ public:
     semantic_analysis(Node::parent &parent);
     semantic_analysis(const semantic_analysis &) = delete;
     semantic_analysis(semantic_analysis &&) = default;
-    ~semantic_analysis() = default;
+    ~semantic_analysis();
 
     semantic_analysis& operator=(const semantic_analysis &) = delete;
     semantic_analysis& operator=(semantic_analysis &&) = default;

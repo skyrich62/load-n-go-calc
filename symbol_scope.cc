@@ -57,7 +57,9 @@ symbol_scope::~symbol_scope()
         auto s = scope().get_kind<Node::scope>();
         s->parent_scope_ = previous_->scope_.get();
         auto par = s->parent_scope_->get_kind<Node::scope>();
-        par->subscopes_.emplace_back(scope_.get());
+        if (!scope_->children.empty()) {
+            par->subscopes_.emplace_back(scope_.get());
+        }
     }
     if (!scope_->children.empty()) {
         parent_.scope_ = std::move(scope_);

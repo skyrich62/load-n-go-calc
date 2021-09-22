@@ -54,6 +54,11 @@ semantic_analysis::semantic_analysis(Node::parent &parent)
     add_intrinsics();
 }
 
+semantic_analysis::~semantic_analysis()
+{
+    pop_scope();
+}
+
 void
 semantic_analysis::add_intrinsics()
 {
@@ -173,6 +178,21 @@ void
 semantic_analysis::pre_visit(node &n, function &f)
 {
     push_scope(f);
+    symbol_scope::current()->scope().get_kind<scope>()->function_ = 1;
+    auto iter = n.children.begin();
+    // First put the name of the function in the function node.
+    f.name_ = (*iter)->string();
+    for (++iter; iter != n.children.end(); ++iter) {
+        // Now, put the parameters into the function's scope.
+        auto &child = *iter;
+        if (child->is_type<variable>()) {
+            auto &var = child->get_kind<variable>()->name_;
+            symbol_scope::add(var, *child);
+        } else {
+            break;
+        }
+    }
+    n.children.erase(n.children.begin(), iter);
 }
 
 void

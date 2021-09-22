@@ -88,9 +88,7 @@ node_decorator::node_decorator(const node &n)
     std::visit(overloaded{
         [this](const number&)    { color_ = "orange"; },
         [this](const variable&)  { color_ = varColor; },
-        [this](const statement&) { peripheries_ = "2"; },
         [this](const scope&)     { peripheries_ = "2"; shape_ = "box"; },
-        [this](const statement&) { peripheries_ = "2"; },
         [this](const function&)  { color_ = funcColor ; shape_ = "box"; },
         [](const auto &arg)      { },
         },
@@ -224,7 +222,8 @@ dot_visitor::pre_visit(node &n, scope &s)
     for (auto &var : n.children) {
         auto isVar = var->is_type<variable>();
         if (isVar) {
-            print_link(n, *var, "variable", varColor);
+            print_link(n, *var,
+                       s.function_ ? "parameter" : "variable", varColor);
         } else {
             print_link(n, *var, "function", funcColor);
         }
@@ -416,7 +415,7 @@ dot_visitor::pre_visit(node &n, function &fd)
         accept(*fd.scope_);
         print_link(n, *fd.scope_, "scope");
     }
-    print_links(n, "parameters");
+    print_links(n, "body");
 }
 
 void
