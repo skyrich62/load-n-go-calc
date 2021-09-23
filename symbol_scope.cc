@@ -33,7 +33,9 @@ namespace cbi = CompuBrite;
 
 symbol_scope* symbol_scope::current_ = nullptr;
 
-symbol_scope::symbol_scope(Node::parent &p) : parent_(p)
+symbol_scope::symbol_scope(Node::node &n, Node::parent &p) :
+    parent_node_(n),
+    parent_(p)
 {
     cbi::CheckPoint cp("symbol_scope");
     previous_ = current_;

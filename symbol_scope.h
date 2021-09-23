@@ -40,7 +40,7 @@ public:
     using Symbols = std::map<std::string, Node::node *>;
 
     /// Create a new stack frame and push it onto the stack.
-    symbol_scope(Node::parent &p);
+    symbol_scope(Node::node &n, Node::parent &p);
 
     /// Destroy a stack frame, pop it off the stack.
     ~symbol_scope();
@@ -71,6 +71,9 @@ public:
     /// @param name The name of the function.
     static void add_intrinsic(std::function<int(int)> func,
                               const std::string &name);
+
+    auto& parent()                          { return parent_; }
+    auto& parent_node()                     { return parent_node_; }
 private:
 
     /// The symbol table for this scope.
@@ -86,6 +89,8 @@ private:
     symbol_scope        *previous_ = nullptr;
 
     /// A reference to the parent node for this scope, (root or compound stmt).
+    Node::node          &parent_node_;
+
     Node::parent        &parent_;
 
     /// A pointer to the current symbol_scope.

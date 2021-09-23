@@ -195,9 +195,9 @@ void
 dot_visitor::pre_visit(node &n, loop_top_test_statement &l)
 {
     print_node(n);
-    print_links(n, "children");
-    //LinkNames linkNames{"condition", "body"};
-    //print_links(n, linkNames);
+    //print_links(n, "children");
+    LinkNames linkNames{"condition", "body"};
+    print_links(n, linkNames);
 }
 
 void
@@ -416,6 +416,10 @@ dot_visitor::pre_visit(node &n, function &fd)
         print_link(n, *fd.scope_, "scope");
     }
     print_links(n, "body");
+    if (n.children.size() == 1) {
+        traversal trav(*this, node_visitor::PRE_VISIT);
+        trav.traverse(*n.children[0]);
+    }
 }
 
 void

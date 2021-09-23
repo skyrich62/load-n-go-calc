@@ -25,11 +25,13 @@
 
 #include "visitor.h"
 
+#include <CompuBrite/CheckPoint.h>
 #include <iostream>
 
 namespace Calc {
 
 using namespace Calc::Node;
+namespace cbi = CompuBrite;
 
 void
 node_visitor::accept(node &n, Mode mode)
@@ -37,10 +39,12 @@ node_visitor::accept(node &n, Mode mode)
     auto &kind = n.kind_;
     std::visit([this, &n, mode](auto &arg)
         {
+            cbi::CheckPoint cp("visitor-accept");
+            cp.print(CBI_HERE, "n = ", &n, ", type = ", n.type);
             if (mode == PRE_VISIT) {
-                return this->pre_visit(n, arg);
+                this->pre_visit(n, arg);
             } else {
-                return this->post_visit(n, arg);
+                this->post_visit(n, arg);
             }
         }, kind);
 }

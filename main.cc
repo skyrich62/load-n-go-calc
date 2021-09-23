@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
                 //print_dot("calc-parse.dot", *root);
                 {
                     auto parent = root->get_kind<Calc::Node::root>();
-                    Calc::semantic_analysis sem(*parent);
+                    Calc::semantic_analysis sem(*root, *parent);
                     Calc::traversal trav(sem, Calc::node_visitor::PRE_VISIT |
                                               Calc::node_visitor::POST_VISIT);
                     trav.traverse(*root);

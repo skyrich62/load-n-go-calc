@@ -43,7 +43,7 @@ namespace Calc {
 class semantic_analysis : public node_visitor
 {
 public:
-    semantic_analysis(Node::parent &parent);
+    semantic_analysis(Node::node &node, Node::parent &parent);
     semantic_analysis(const semantic_analysis &) = delete;
     semantic_analysis(semantic_analysis &&) = default;
     ~semantic_analysis();
@@ -91,7 +91,7 @@ public:
     void pre_visit(Node::node &, Node::function_call &) override;
 
     /// Push a new scope onto the symbol_scope stack.
-    void push_scope(Node::parent &parent);
+    void push_scope(Node::node &node, Node::parent &parent);
 
     /// Pop a scope off the stack, and delete it.
     void pop_scope();

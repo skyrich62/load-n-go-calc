@@ -48,9 +48,9 @@ checkKeyword(const std::string &name)
     }
 }
 
-semantic_analysis::semantic_analysis(Node::parent &parent)
+semantic_analysis::semantic_analysis(Node::node &n, Node::parent &p)
 {
-    push_scope(parent);
+    push_scope(n, p);
     add_intrinsics();
 }
 
@@ -84,9 +84,9 @@ semantic_analysis::add_intrinsics()
 }
 
 void
-semantic_analysis::push_scope(Node::parent &parent)
+semantic_analysis::push_scope(Node::node &node, Node::parent &parent)
 {
-    auto ptr = std::make_unique<symbol_scope>(parent);
+    auto ptr = std::make_unique<symbol_scope>(node, parent);
     cbi::CheckPoint cp("semantic_analysis");
     cp.print(CBI_HERE, "New scope: ", ptr.get());
     stack_.emplace(std::move(ptr));
@@ -165,7 +165,7 @@ semantic_analysis::pre_visit(node &n, declaration &)
 void
 semantic_analysis::pre_visit(node &n, compound_statement &c)
 {
-    push_scope(c);
+    push_scope(n, c);
 }
 
 void
@@ -177,7 +177,7 @@ semantic_analysis::post_visit(node &, compound_statement &c)
 void
 semantic_analysis::pre_visit(node &n, function &f)
 {
-    push_scope(f);
+    push_scope(n, f);
     symbol_scope::current()->scope().get_kind<scope>()->function_ = 1;
     auto iter = n.children.begin();
     // First put the name of the function in the function node.
@@ -185,20 +185,34 @@ semantic_analysis::pre_visit(node &n, function &f)
     for (++iter; iter != n.children.end(); ++iter) {
         // Now, put the parameters into the function's scope.
         auto &child = *iter;
-        if (child->is_type<variable>()) {
-            auto &var = child->get_kind<variable>()->name_;
-            symbol_scope::add(var, *child);
-        } else {
+        if (!child->is_type<variable>()) {
             break;
         }
+        auto &var = child->get_kind<variable>()->name_;
+        symbol_scope::add(var, *child);
     }
     n.children.erase(n.children.begin(), iter);
+
 }
 
 void
-semantic_analysis::post_visit(node &, function &)
+semantic_analysis::post_visit(node &n, function &f)
 {
     pop_scope();
+    // Now, unlink this function from it's parent, and link it to
+    // the current scope.
+    auto &parent_node = symbol_scope::current()->parent_node();
+    auto &scope = symbol_scope::current()->scope();
+    auto iter = parent_node.children.begin();
+    for (; iter != parent_node.children.end(); ++iter) {
+        auto &child = *iter;
+        if (child.get() == &n) {
+            auto &parent = symbol_scope::current()->parent();
+            scope.emplace_back(std::move(child));
+            parent_node.children.erase(iter);
+            break;
+        }
+    }
 }
 
 void
