@@ -51,7 +51,9 @@ traversal::traverse(node &n)
         visitor_.accept(n, node_visitor::PRE_VISIT);
     }
     for (const auto &child : n.children) {
-        traverse(*child);
+        if (child) {
+            traverse(*child);
+        }
     }
     if (mode_ & node_visitor::POST_VISIT) {
         visitor_.accept(n, node_visitor::POST_VISIT);
