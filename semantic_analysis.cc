@@ -141,6 +141,8 @@ semantic_analysis::pre_visit(node &n, exit_statement &)
 void
 semantic_analysis::pre_visit(node &n, function_call &fc)
 {
+    cbi::CheckPoint cp("function-call");
+    cp.print(CBI_HERE);
     // First, capture the function name node, then delete it from
     // the children.  Find the function associated with the name,
     // and put it in the function_call node.
@@ -179,6 +181,7 @@ semantic_analysis::pre_visit(node &n, function &f)
 {
     push_scope(n, f);
     symbol_scope::current()->scope().get_kind<scope>()->function_ = 1;
+    symbol_scope::add_function(f.name_, n);
     auto iter = n.children.begin();
     // First put the name of the function in the function node.
     f.name_ = (*iter)->string();
@@ -192,7 +195,6 @@ semantic_analysis::pre_visit(node &n, function &f)
         symbol_scope::add(var, *child);
     }
     n.children.erase(n.children.begin(), iter);
-
 }
 
 void
@@ -201,6 +203,7 @@ semantic_analysis::post_visit(node &n, function &f)
     pop_scope();
     // Now, unlink this function from it's parent, and link it to
     // the current scope.
+#if 0
     auto &parent_node = symbol_scope::current()->parent_node();
     auto &scope = symbol_scope::current()->scope();
     auto iter = parent_node.children.begin();
@@ -213,6 +216,7 @@ semantic_analysis::post_visit(node &n, function &f)
             break;
         }
     }
+#endif
 }
 
 void
