@@ -27,7 +27,10 @@
 #include <iostream>
 #include <set>
 
+#include <CompuBrite/CheckPoint.h>
+
 namespace Calc {
+namespace cbi = CompuBrite;
 
 using namespace Calc::Node;
 
@@ -388,12 +391,17 @@ evaluator::pre_visit(node &n, greater_or_equal &)
 void
 evaluator::pre_visit(node &n, function_call &fc)
 {
-    accept(*n.children[0]);
-    auto operand = result_;
-    auto func = fc.symbol_->get_kind<function>()->intrinsic_;
+    cbi::CheckPoint::expect(CBI_HERE, fc.symbol_, "No defined function!");
+    auto func_node = fc.symbol_->get_kind<function>();
+    cbi::CheckPoint::expect(CBI_HERE, func_node, "func_node should not be null");
+    auto func = func_node->intrinsic_;
     if (func) {
+        accept(*n.children[0]);
+        auto operand = result_;
         set_result(func(operand));
+        return;
     }
+    // Not an intrinsic function.
 }
 
 } // namespace Calc
