@@ -160,11 +160,11 @@ dot_visitor::print_node(node &n)
         << ", fontcolor=" << decorator.get_color();
     os_ << ", shape=" << decorator.get_shape();
     os_ << ", peripheries=" << decorator.get_peripheries();
-    os_ << ", label=\"";
+    os_ << ", label=\"" << &n << "\\n";
     auto s = n.is_root() ? "ROOT" : std::string(n.type);
     TAO_PEGTL_NAMESPACE::parse_tree::internal::escape(os_, s);
     if (!name.empty()) {
-        os_ << "\\n " << name;
+        os_ << "\\n" << name;
     }
     os_ << "\" ]\n";
 }
@@ -416,10 +416,6 @@ dot_visitor::pre_visit(node &n, function &fd)
         print_link(n, *fd.scope_, "scope");
     }
     print_links(n, "body");
-    if (n.children.size() == 1) {
-        traversal trav(*this, node_visitor::PRE_VISIT);
-        trav.traverse(*n.children[0]);
-    }
 }
 
 void
