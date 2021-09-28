@@ -230,9 +230,12 @@ struct term;
 /// integer <- digit+
 struct integer : plus< digit > { };
 
+/// expression_list <- ( expression , )*
+struct expression_list : list<expression, COMMA, ws> { };
+
 /// function_call <- symbol_name LPAREN expression RPAREN
 struct function_call :
-    seq< symbol_name, wss, LPAREN, wss, expression, wss, RPAREN > { };
+    seq< symbol_name, wss, LPAREN, wss, expression_list, wss, RPAREN > { };
 
 /// assignment <- symbol_name ASSIGN expression
 struct assignment : seq< symbol_name, wss, ASSIGN, wss, expression > { };
