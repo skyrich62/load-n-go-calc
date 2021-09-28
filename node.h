@@ -70,6 +70,8 @@ struct symbol_name {
 
 /// A scope node
 struct scope_base {
+    scope_base() : function_(0)             { }
+
     /// The parent scope of this one, or nullptr for the top-level, (global)
     /// scope.
     node *parent_scope_ = nullptr;
