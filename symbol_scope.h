@@ -60,6 +60,11 @@ public:
     /// Changes var to be a variable reference instead.
     static void add(const std::string &name, Node::node &var);
 
+    /// Add a new function name to the current scope.
+    /// @param name The name of the function
+    /// @param func The node which contains the function definition.
+    static void add_function(const std::string &name, Node::node &func);
+
     /// Get a reference to the current scope node.
     auto& scope()                           { return *scope_; }
 

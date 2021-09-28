@@ -114,6 +114,12 @@ symbol_scope::add(const std::string &name, Node::node &var)
 }
 
 void
+symbol_scope::add_function(const std::string &name, Node::node &func)
+{
+    current_->table_[name] = &func;
+}
+
+void
 symbol_scope::add_intrinsic(std::function<int(int)> func,
               const std::string &name)
 {
