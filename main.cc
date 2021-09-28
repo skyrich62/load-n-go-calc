@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
                 root->set_kind<Calc::Node::root>({nullptr});
                 std::ofstream os("calc-parse.dot");
                 parse_tree::print_dot(os, *root);
-                //print_dot("calc-parse.dot", *root);
+                os.close();
                 {
                     auto parent = root->get_kind<Calc::Node::root>();
                     Calc::semantic_analysis sem(*root, *parent);
