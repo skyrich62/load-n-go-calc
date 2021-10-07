@@ -84,8 +84,29 @@ struct scope_base {
 };
 
 /// A function node kind
-struct function_base : public symbol_name, public scope_base, public parent {
-    std::function<int(int)> intrinsic_;
+struct function_base : public parent
+{
+    std::vector<node *> subscopes_;
+    std::string name_;
+
+    using Intrinsic = std::function<int(int)>;
+    std::variant<Intrinsic, node *> kind_;
+
+    Intrinsic get_intrinsic()
+    {
+        if (std::holds_alternative<Intrinsic>(kind_)) {
+            return std::get<Intrinsic>(kind_);
+        }
+        return Intrinsic();
+    }
+
+    node *get_function()
+    {
+        if (std::holds_alternative<node*>(kind_)) {
+            return std::get<node *>(kind_);
+        }
+        return nullptr;
+    }
 };
 
 /// A function call base node kind

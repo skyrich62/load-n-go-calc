@@ -46,16 +46,36 @@ static void print_dot(const std::string &name, Calc::Node::node &root)
     Calc::print_dot(os, root);
 }
 
+static void print_stats()
+{
+    namespace cbi = CompuBrite;
+    cbi::CheckPoint stats("stats");
+    if (!stats.active()) {
+        return;
+    }
+
+    using namespace Calc::Node;
+
+     std::cout << "Sizeof node: " << sizeof(node) << std::endl;
+     std::cout << "Sizeof node.kind: " << sizeof(node::kind_) << std::endl;
+     std::cout << "Sizeof vector: " << sizeof(std::vector<node*>) << std::endl;
+#define xx(a, b) std::cout << "sizeof(" #a ") " << sizeof(a) << std::endl;
+#include "node_kind.def"
+#undef xx
+}
+
 int main(int argc, char *argv[])
 {
-     using namespace tao::pegtl;
-     namespace cbi = CompuBrite;
+    using namespace tao::pegtl;
+    namespace cbi = CompuBrite;
 
-     if (argc == 1) {
+    print_stats();
+
+    if (argc == 1) {
         std::cerr << "usage: calc <statements>\n";
         return 1;
-     }
-     for (auto i = 1u; i < argc; ++i) {
+    }
+    for (auto i = 1u; i < argc; ++i) {
         try {
             cbi::CheckPoint trace("trace");
             if (trace.active()) {

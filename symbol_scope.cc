@@ -75,16 +75,18 @@ symbol_scope::lookup(const std::string &name)
     for (auto frame = current_; frame != nullptr; frame = frame->previous_) {
         auto found = frame->table_.find(name);
         if (found == frame->table_.end()) {
-            cp.print(CBI_HERE, "Frame = ", frame);
+            cp.print(CBI_HERE,
+                "Lookup failed for: ", name, " in Frame: ", frame);
             continue;
         }
-        cp.print(CBI_HERE, "====> Frame: ", frame, ", Found: ", found->first, ": ", found->second);
+        cp.print(CBI_HERE,
+            "Lookup found: ", name, " as: ", found->second, " in frame: ", frame);
         return found->second;
     }
     // If we got here, we can't find the symbol. Insert a new symbol in the
     // current frame, add it to the current scope, and return that value.
     // This is an implicit declaration.
-    cp.print(CBI_HERE, "Inserting a new node for ", name);
+    cp.print(CBI_HERE, "Failed to find name in any scope, inserting a new node for ", name);
     auto node = std::make_unique<Node::node>();
     auto ptr = node.get();
     node->set_kind(Node::variable{name});
@@ -116,7 +118,9 @@ symbol_scope::add(const std::string &name, Node::node &var)
 void
 symbol_scope::add_function(const std::string &name, Node::node &func)
 {
-    current_->table_[name] = &func;
+    cbi::CheckPoint cp("add");
+    cp.print(CBI_HERE, "Frame: ", current_, ", name: ", name, ", func: ", &func);
+    current_->previous_->table_[name] = &func;
 }
 
 void
@@ -127,7 +131,7 @@ symbol_scope::add_intrinsic(std::function<int(int)> func,
     node->set_type<Node::function>();
     Node::function f;
     f.name_ = name;
-    f.intrinsic_ = func;
+    f.kind_ = func;
     node->set_kind(std::move(f));
     current_->table_[name] = node.get();
     current_->scope_->children.emplace_back(std::move(node));

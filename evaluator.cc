@@ -394,7 +394,8 @@ evaluator::pre_visit(node &n, function_call &fc)
     cbi::CheckPoint::expect(CBI_HERE, fc.symbol_, "No defined function!");
     auto func_node = fc.symbol_->get_kind<function>();
     cbi::CheckPoint::expect(CBI_HERE, func_node, "func_node should not be null");
-    auto func = func_node->intrinsic_;
+
+    auto func = func_node->get_intrinsic();
     if (func) {
         accept(*n.children[0]);
         auto operand = result_;

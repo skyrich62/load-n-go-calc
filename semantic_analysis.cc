@@ -181,10 +181,10 @@ semantic_analysis::pre_visit(node &n, function &f)
 {
     push_scope(n, f);
     symbol_scope::current()->scope().get_kind<scope>()->function_ = 1;
-    symbol_scope::add_function(f.name_, n);
     auto iter = n.children.begin();
     // First put the name of the function in the function node.
     f.name_ = (*iter)->string();
+    symbol_scope::add_function(f.name_, n);
     for (++iter; iter != n.children.end(); ++iter) {
         // Now, put the parameters into the function's scope.
         auto &child = *iter;
