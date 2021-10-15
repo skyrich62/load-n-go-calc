@@ -76,8 +76,8 @@ evaluator::pre_visit(node &n, compound_statement&)
     auto &c = n.children;
     for (const auto &child : c) {
         this->accept(*child);
-        if (this->exiting()) {
-            break;
+        if (!this->running()) {
+            return;
         }
     }
 }
@@ -89,15 +89,16 @@ evaluator::pre_visit(node &n, loop_top_test_statement &)
     auto &body = *n.children[1];
     while (true) {
         accept(cond);
-        this->exiting(false);
+        this->resume();
         if (result_ == 0) {
             break;
         }
         accept(body);
-        if (this->exiting()) {
+        if (!this->running()) {
             break;
         }
     }
+    this->resume();
 }
 
 void
@@ -107,7 +108,7 @@ evaluator::pre_visit(node &n, loop_bottom_test_statement &)
     auto &body = *n.children[0];
     do {
         accept(body);
-        if (this->exiting()) {
+        if (!this->running()) {
             break;
         }
         accept(cond);
@@ -115,7 +116,7 @@ evaluator::pre_visit(node &n, loop_bottom_test_statement &)
             break;
         }
     } while (true);
-    this->exiting(false);
+    this->resume();
 }
 
 void
@@ -139,10 +140,10 @@ evaluator::pre_visit(node &n, exit_statement &)
         auto &cond = *n.children[0];
         accept(cond);
         if (result_) {
-            this->exiting(true);
+            this->stop();
         }
     } else {
-        this->exiting(true);
+        this->stop();
     }
 }
 

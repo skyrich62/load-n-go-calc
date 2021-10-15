@@ -53,13 +53,20 @@ public:
     /// Set the result of the current evaluation.
     void set_result(int res)                { result_ = res; }
 
-    bool exiting(void) const                { return exiting_; }
-    void exiting(bool b)                    { exiting_ = b; }
+    /// Is the evaluator running?
+    bool running(void) const                { return running_; }
+
+    /// Stop normal evaluation.  (Used for a loop exit, and function return)
+    void stop(void)                         { running_ = false; }
+
+    /// Resume normal evaluation. Used after recovering from a loop exit
+    /// or return from a function.
+    void resume(void)                       { running_ = true; }
 private:
     using ValueMap = std::map<Node::node*, int>;
     ValueMap values_;
     int      result_{0};
-    bool     exiting_{false};
+    bool     running_{true};
 
 };
 } // namespace Calc
