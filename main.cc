@@ -56,12 +56,16 @@ static void print_stats()
 
     using namespace Calc::Node;
 
-     std::cout << "Sizeof node: " << sizeof(node) << std::endl;
-     std::cout << "Sizeof node.kind: " << sizeof(node::kind_) << std::endl;
-     std::cout << "Sizeof vector: " << sizeof(std::vector<node*>) << std::endl;
+    std::cout << "Sizeof node: " << sizeof(node) << std::endl;
+    std::cout << "Sizeof node.kind: " << sizeof(node::kind_) << std::endl;
+    std::cout << "Sizeof vector: " << sizeof(std::vector<node*>) << std::endl;
 #define xx(a, b) std::cout << "sizeof(" #a ") " << sizeof(a) << std::endl;
 #include "node_kind.def"
 #undef xx
+
+    std::cout << "Sizeof (function::Intrinsic) " << sizeof(function_base::Intrinsic) << std::endl;
+    std::cout << "Sizeof (function::Kind) " << sizeof(function_base::Kind) << std::endl;
+    std::cout << "Sizeof (function_base) " << sizeof(function_base) << std::endl;
 }
 
 int main(int argc, char *argv[])
