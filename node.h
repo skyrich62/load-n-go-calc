@@ -72,25 +72,25 @@ struct symbol_name {
 struct scope_base {
     scope_base() : function_(0)             { }
 
+    /// Subscopes of this scope if any.
+    std::vector<node *> subscopes_;
+
     /// The parent scope of this one, or nullptr for the top-level, (global)
     /// scope.
     node *parent_scope_ = nullptr;
 
-    /// Subscopes of this scope if any.
-    std::vector<node *> subscopes_;
-
     /// Is this a function scope?
-    unsigned long function_: 1;
+    unsigned short function_: 1;
 };
 
 /// A function node kind
 struct function_base : public parent
 {
-    std::vector<node *> subscopes_;
-    std::string name_;
-
     using Intrinsic = std::function<int(int)>;
-    std::variant<Intrinsic, node *> kind_;
+    using Kind = std::variant<Intrinsic, node *>;
+
+    Kind kind_;
+    std::string name_;
 
     Intrinsic get_intrinsic()
     {
