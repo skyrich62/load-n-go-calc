@@ -395,14 +395,24 @@ evaluator::pre_visit(node &n, function_call &fc)
     auto func_node = fc.symbol_->get_kind<function>();
     cbi::CheckPoint::expect(CBI_HERE, func_node, "func_node should not be null");
 
-    auto func = func_node->get_intrinsic();
-    if (func) {
+    if (auto func = func_node->get_intrinsic(); func) {
         accept(*n.children[0]);
         auto operand = result_;
         set_result(func(operand));
         return;
     }
     // Not an intrinsic function.
+    // Evaluate each argument and assign it's value to the corresponding
+    // parameter.  Recursive functions are not yet supported.
+    auto &scope = func_node->scope_;
+    auto param = scope->children.begin();
+    for (auto &arg : n.children) {
+        accept(*arg);
+        //auto var = (*param)->get_kind<variable>();
+        //auto name = var->get_kind<variable>()->name_;
+        values_[(*param).get()] = result_;
+        ++param;
+    }
 }
 
 } // namespace Calc
