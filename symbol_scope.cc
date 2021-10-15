@@ -120,7 +120,7 @@ symbol_scope::add_function(const std::string &name, Node::node &func)
 {
     cbi::CheckPoint cp("add");
     cp.print(CBI_HERE, "Frame: ", current_, ", name: ", name, ", func: ", &func);
-    current_->previous_->table_[name] = &func;
+    current_->table_[name] = &func;
 }
 
 void

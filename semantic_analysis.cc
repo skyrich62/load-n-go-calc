@@ -179,12 +179,17 @@ semantic_analysis::post_visit(node &, compound_statement &c)
 void
 semantic_analysis::pre_visit(node &n, function &f)
 {
+    // First put the name of the function in the function node.
+    auto iter = n.children.begin();
+    f.name_ = (*iter)->string();
+
+    // Add the function to the current scope
+    symbol_scope::add_function(f.name_, n);
+
+    // Push a new scope for this function.
     push_scope(n, f);
     symbol_scope::current()->scope().get_kind<scope>()->function_ = 1;
-    auto iter = n.children.begin();
-    // First put the name of the function in the function node.
-    f.name_ = (*iter)->string();
-    symbol_scope::add_function(f.name_, n);
+
     for (++iter; iter != n.children.end(); ++iter) {
         // Now, put the parameters into the function's scope.
         auto &child = *iter;
