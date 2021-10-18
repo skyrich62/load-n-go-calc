@@ -405,7 +405,7 @@ evaluator::pre_visit(node &n, function_call &fc)
     // Not an intrinsic function.
     // Evaluate each argument and assign it's value to the corresponding
     // parameter.  Recursive functions are not yet supported.
-    cbi::CheckPoint cp("function-call");
+    cbi::CheckPoint cp("ev-function-call");
     cp.print(CBI_HERE, "function call: ", func_node->name_);
     auto &scope = func_node->scope_;
     auto param = scope->children.begin();

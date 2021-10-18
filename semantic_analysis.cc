@@ -141,7 +141,7 @@ semantic_analysis::pre_visit(node &n, exit_statement &)
 void
 semantic_analysis::pre_visit(node &n, function_call &fc)
 {
-    cbi::CheckPoint cp("function-call");
+    cbi::CheckPoint cp("sa-function-call");
     cp.print(CBI_HERE);
     // First, capture the function name node, then delete it from
     // the children.  Find the function associated with the name,
