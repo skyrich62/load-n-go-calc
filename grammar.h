@@ -165,6 +165,9 @@ struct ELSE : keyword< 'e', 'l', 's', 'e' > { };
 /// EXIT <- exit !identifier_other
 struct EXIT : keyword< 'e', 'x', 'i', 't' > { };
 
+/// RETURN <- return !identifier_other
+struct RETURN : keyword< 'r', 'e', 't', 'u', 'r', 'n' > { };
+
 /// THEN <- then !identifier_other
 struct THEN : keyword< 't', 'h', 'e', 'n' > { };
 
@@ -205,9 +208,10 @@ struct OR : seq< ORkw, not_at< wsp, ELSE > > { };
 struct OR_ELSE : seq< ORkw, wsp, ELSE > { };
 
 /// keywords <- AND / DEF / ELSE / EXIT / IF / LOOP / NOT / OR / THEN /
-///             UNTIL / VAR / WHILE
+///             UNTIL / VAR / WHILE / RETURN
 struct keywords:
-    sor< AND, DEF, ELSE, EXIT, IF, LOOP, NOT, OR, THEN, UNTIL, VAR, WHILE > { };
+    sor< AND, DEF, ELSE, EXIT, IF, LOOP, NOT, OR, RETURN, THEN,
+         UNTIL, VAR, WHILE > { };
 
 /// logical_operator <- OR / AND / AND_THEN / OR_ELSE
 struct logical_operator : sor< AND_THEN, OR_ELSE, OR, AND > { };
@@ -292,10 +296,13 @@ struct expression_statement : seq< expression, wss, SEMI > { };
 /// decl_statement <- VAR symbol_name ';'
 struct decl_statement : seq< VAR, wsp, symbol_name, wss, SEMI > { };
 
-/// exit_statement <- EXIT (IF expression)?
+/// exit_statement <- EXIT (IF expression)? ';'
 struct exit_statement :
     seq< EXIT, opt< wsp, IF, wsp, expression >, wss, SEMI> { };
 
+/// return_statement <- RETURN expression ';'
+struct return_statement :
+    seq<RETURN, wsp, expression, wss, SEMI> { };
 struct function_definition;
 
 /// simple_statement <- (decl_statement / assignment_statement / expression_statement / if_statement) SEMI
@@ -304,6 +311,8 @@ struct simple_statement :
         function_definition,
         decl_statement,
         exit_statement,
+        return_statement,
+        return_statement,
         if_statement,
         assignment_statement,
         expression_statement

@@ -119,14 +119,17 @@ struct assign_node_type : parse_tree::apply<assign_node_type>
     template< typename... States>
     static void transform( Ptr &n, States&&... st)
     {
+        // statements
         try_type<decl_statement, Node::declaration>(n)                ||
         try_type<function_definition, Node::function>(n)              ||
         try_type<expression_statement, Node::expression_statement>(n) ||
         try_type<exit_statement, Node::exit_statement>(n)             ||
+        try_type<return_statement, Node::return_statement>(n)         ||
         try_type<if_statement, Node::if_statement>(n)                 ||
         try_type<assignment_statement, Node::assignment_statement>(n) ||
         try_type<compound_statement, Node::compound_statement>(n)     ||
 
+        // operations
         try_type<logical_negation, Node::logical_not>(n)              ||
         try_type<OR, Node::logical_or>(n)                             ||
         try_type<AND, Node::logical_and>(n)                           ||
@@ -229,6 +232,7 @@ using selector = parse_tree::selector<
     if_statement,
     assignment_statement,
     exit_statement,
+    return_statement,
     expression_statement,
     compound_statement,
     addition,

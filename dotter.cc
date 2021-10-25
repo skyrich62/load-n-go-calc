@@ -426,6 +426,13 @@ dot_visitor::pre_visit(node &n, exit_statement &s)
 }
 
 void
+dot_visitor::pre_visit(node &n, return_statement &s)
+{
+    print_node(n);
+    print_links(n, "expression");
+}
+
+void
 print_dot(std::ostream &os, node &n)
 {
     dot_visitor d(os);

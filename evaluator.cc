@@ -54,7 +54,15 @@ evaluator::pre_visit(node &n, root &)
 {
     auto &c = n.children;
     for (const auto &child : c) {
-        this->accept(*child);
+        // catch misplaced exit or return statements... This should be caught
+        // during semantic analysis, but that's for another patch.
+        try {
+            this->accept(*child);
+        } catch (const loop_exiting &) {
+            std::cerr << "Exit statement outside of loop." << std::endl;
+        } catch (const function_returning &) {
+            std::cerr << "Return statement outside of function." << std::endl;
+        }
     }
 }
 
@@ -76,9 +84,6 @@ evaluator::pre_visit(node &n, compound_statement&)
     auto &c = n.children;
     for (const auto &child : c) {
         this->accept(*child);
-        if (!this->running()) {
-            return;
-        }
     }
 }
 
@@ -89,16 +94,15 @@ evaluator::pre_visit(node &n, loop_top_test_statement &)
     auto &body = *n.children[1];
     while (true) {
         accept(cond);
-        this->resume();
         if (result_ == 0) {
-            break;
+            return;
         }
-        accept(body);
-        if (!this->running()) {
-            break;
+        try {
+            accept(body);
+        } catch (const loop_exiting &e) {
+            return;
         }
     }
-    this->resume();
 }
 
 void
@@ -107,16 +111,16 @@ evaluator::pre_visit(node &n, loop_bottom_test_statement &)
     auto &cond = *n.children[1];
     auto &body = *n.children[0];
     do {
-        accept(body);
-        if (!this->running()) {
-            break;
+        try {
+            accept(body);
+        } catch (const loop_exiting &e) {
+            return;
         }
         accept(cond);
         if (result_ == 0) {
-            break;
+            return;
         }
     } while (true);
-    this->resume();
 }
 
 void
@@ -140,11 +144,18 @@ evaluator::pre_visit(node &n, exit_statement &)
         auto &cond = *n.children[0];
         accept(cond);
         if (result_) {
-            this->stop();
+            throw loop_exiting{};
         }
     } else {
-        this->stop();
+        throw loop_exiting{};
     }
+}
+
+void
+evaluator::pre_visit(node &n, return_statement &)
+{
+    accept(*n.children[0]);
+    throw function_returning{};
 }
 
 void
@@ -418,7 +429,11 @@ evaluator::pre_visit(node &n, function_call &fc)
         ++param;
     }
     auto &body = fc.symbol_->children[0];
-    accept(*body);
+    try {
+        accept(*body);
+    } catch (const function_returning &) {
+        return;
+    }
 }
 
 } // namespace Calc
