@@ -2,6 +2,7 @@
 #define IS_VALID_H_INCLUDED
 
 #include <variant>
+#include <type_traits>
 
 template< typename T, typename U> struct is_valid;
 
