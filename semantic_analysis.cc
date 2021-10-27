@@ -135,6 +135,18 @@ semantic_analysis::pre_visit(node &n, exit_statement &)
     if (loops_ == 0u) {
         std::cerr << "Error: Exit statement is only allowed inside loop bodies."
                   << std::endl;
+        /// @todo Signal an error to prevent evaluation of the resulting
+        /// tree.  Perhaps introduce an error node as well.
+    }
+}
+
+void
+semantic_analysis::pre_visit(node &n, return_statement &)
+{
+    if (funcs_ == 0u) {
+        std::cerr << "Error: Return statement is only allowed inside function bodies." << std::endl;
+        /// @todo Signal an error to prevent evaluation of the resulting tree.
+        /// Perhaps introduce an error node as well.
     }
 }
 
@@ -179,6 +191,7 @@ semantic_analysis::post_visit(node &, compound_statement &c)
 void
 semantic_analysis::pre_visit(node &n, function &f)
 {
+    ++funcs_;
     // First put the name of the function in the function node.
     auto iter = n.children.begin();
     f.name_ = (*iter)->string();
@@ -205,6 +218,7 @@ semantic_analysis::pre_visit(node &n, function &f)
 void
 semantic_analysis::post_visit(node &n, function &f)
 {
+    --funcs_;
     pop_scope();
     // Now, unlink this function from it's parent, and link it to
     // the current scope.

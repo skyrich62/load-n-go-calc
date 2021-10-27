@@ -60,10 +60,10 @@ public:
     /// Visit compound statement, after visiting its children
     void post_visit(Node::node &, Node::compound_statement &) override;
 
-    /// Visit a compound statement.
+    /// Visit a function
     void pre_visit(Node::node &, Node::function &) override;
 
-    /// Visit compound statement, after visiting its children
+    /// Visit function after visiting all of it's children.
     void post_visit(Node::node &, Node::function &) override;
 
     /// Visit a symbol node.
@@ -71,6 +71,9 @@ public:
 
     /// Visit an exit statement
     void pre_visit(Node::node &, Node::exit_statement&) override;
+
+    /// Visit a return statement
+    void pre_visit(Node::node &, Node::return_statement&) override;
 
     /// Visit a top test loop statement
     void pre_visit(Node::node &, Node::loop_top_test_statement &) override;
@@ -106,6 +109,7 @@ private:
 
     ScopeStack stack_;
     size_t     loops_{0u};
+    size_t     funcs_{0u};
 };
 
 } // namespace Calc
