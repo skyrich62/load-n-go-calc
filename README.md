@@ -8,10 +8,12 @@ complete solution, but rather an exercise to point out how to use a
 std::variant in the PEGTL parse tree node and a "cleaner way(tm)" of visiting
 the different variants.
 
-The input is currently only on the command line, and consists of compound
+The input is a file named on the command line, and consists of compound
 statements, assignment statements, if-statements, block statements,
 declaration statements, loop statements, exit statements, return statements,
 function definition statements, or expression statements.
+
+# Statements
 
 ## Assignment-statements have the form:
 
