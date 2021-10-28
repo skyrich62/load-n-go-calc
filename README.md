@@ -106,8 +106,8 @@ of 4, (24), should be assigned to variable "x".
 
 Where the contents of "file.calc" are:
 
-a := 5 * 2;
-b := a + 4;
+   a := 5 * 2;
+   b := a + 4;
 
 The two statements will be parsed, and the resulting parse tree will be printed out to a file named: "calc-parse.dot" in GraphViz "dot" notation.
 Then, semantic analysis will be performed, to create an AST from the resulting parse tree.
