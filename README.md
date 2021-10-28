@@ -13,6 +13,7 @@ statements, assignment statements, if-statements, block statements,
 declaration statements, loop statements, exit statements, return statements,
 function definition statements, or expression statements.
 
+Only integer types, (c++ "int") are understood for now.  
 # Statements
 
 ## Assignment-statements have the form:
@@ -33,22 +34,25 @@ The "else" clause is optional.  The condition is any expression.  If the result 
 
     var variableName;
 
-Variables may be used without being defined, (in which case, they are implicitly defined.)
+Variables may be used without being defined, (in which case, they are implicitly defined.) Variable names start with a letter and may be followed by any number of letters and/or digits, (as in C or C++).  Variable names are case sensitive.
+
 
 ## Loop-statements have two forms:
 ### Top test loop statements have the form:
 
-    loop while expression Compound-statement
-    loop until expression Compound-statement
+    loop while (expression) Compound-statement
+    loop until (expression) Compound-statement
 
 ### Bottom test loop statements have the form:
 
-    loop Compound-statement while expression
-    loop Compound-statement until expression
+    loop Compound-statement while (expression)
+    loop Compound-statement until (expression)
 
 If the loop-statement contains a "while" clause, the loop will continue as long as the expression evalutates to a non-zero value.
 If the loop-statement contains an "until" clause, the loop will continue until the expression evaluates to a non-zero value.
-Top-test loops will never iterate, bottom-test loop statements will always iterate at least once.
+Top-test loops may never iterate, bottom-test loop statements will always iterate at least once.
+
+In all cases, the expression to evaluate must be enclosed in parentheses.
 
 ## Exit-statements have the form:
 
@@ -57,14 +61,14 @@ Top-test loops will never iterate, bottom-test loop statements will always itera
 
 
  If there is an "if" clause, and it's expression evaluates to a non-zero value, then the immediately enclosing loop will be terminated.
- If there is no "if" clause, then the immediately enclosing loop will be terinated.
+ If there is no "if" clause, then the immediately enclosing loop will be terminated.
  Exit-statements are only allowed inside the body of a loop statement.  An error message will be put out otherwise.
 
 ## Compound-statements have the form:
 
     { statement; statement; statement; ... }
 
-Only integer types, (c++ "int") are understood for now.  Variables start with a letter and may be followed by any number of letters and/or digits.
+
 Variables defined inside a compound statement have scope only within the compound statement.  A variable may be explicitly defined inside a compound statement which has the same name/identifier as one in a surrounding scope.  This effectively hides the outer scope variable while inside the compound statement.
 Compound statements can optionally have a name.  The name is parsed, but it currently is not put into the resulting parse tree.  This is for future use.
 
