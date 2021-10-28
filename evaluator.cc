@@ -59,9 +59,9 @@ evaluator::pre_visit(node &n, root &)
         try {
             this->accept(*child);
         } catch (const loop_exiting &) {
-            std::cerr << "Exit statement outside of loop." << std::endl;
+            //std::cerr << "Exit statement outside of loop." << std::endl;
         } catch (const function_returning &) {
-            std::cerr << "Return statement outside of function." << std::endl;
+            //std::cerr << "Return statement outside of function." << std::endl;
         }
     }
 }

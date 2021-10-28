@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
                 argv_input in(argv, i);
                 complete_trace<Calc::grammar::grammar>(in);
             }
-            argv_input in(argv, i);
+            file_input in(argv[i]);
             auto root = parse_tree::parse<Calc::grammar::grammar, Calc::Node::node, Calc::grammar::selector>(in);
             if (root) {
                 std::cerr << "Parse successful." << std::endl;
