@@ -38,8 +38,8 @@ Variables may be used without being defined, (in which case, they are implicitly
 ## Loop-statements have two forms:
 ### Top test loop statements have the form:
 
-   loop while expression Compound-statement
-   loop until expression Compound-statement
+    loop while expression Compound-statement
+    loop until expression Compound-statement
 
 ### Bottom test loop statements have the form:
 
