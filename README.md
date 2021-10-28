@@ -10,7 +10,8 @@ the different variants.
 
 The input is currently only on the command line, and consists of compound
 statements, assignment statements, if-statements, block statements,
-declaration statements, loop statements, exit statements, or expression statements.
+declaration statements, loop statements, exit statements, return statements,
+function definition statements, or expression statements.
 
 ## Assignment-statements have the form:
 
@@ -37,12 +38,12 @@ Variables may be used without being defined, (in which case, they are implicitly
 
    loop while expression Compound-statement
    loop until expression Compound-statement
-   
+
 ### Bottom test loop statements have the form:
 
     loop Compound-statement while expression
     loop Compound-statement until expression
-    
+
 If the loop-statement contains a "while" clause, the loop will continue as long as the expression evalutates to a non-zero value.
 If the loop-statement contains an "until" clause, the loop will continue until the expression evaluates to a non-zero value.
 Top-test loops will never iterate, bottom-test loop statements will always iterate at least once.
@@ -51,12 +52,12 @@ Top-test loops will never iterate, bottom-test loop statements will always itera
 
     exit;
     exit if expression;
-    
- 
+
+
  If there is an "if" clause, and it's expression evaluates to a non-zero value, then the immediately enclosing loop will be terminated.
  If there is no "if" clause, then the immediately enclosing loop will be terinated.
  Exit-statements are only allowed inside the body of a loop statement.  An error message will be put out otherwise.
-    
+
 ## Compound-statements have the form:
 
     { statement; statement; statement; ... }
@@ -69,10 +70,44 @@ Compound statements can optionally have a name.  The name is parsed, but it curr
 
 Here, "xyzzy" is the compound statement name.  In the future, a scope operator will be introduced which will allow access to hidden variable names by explictly designating the scope.
 
+## Return statements have the form:
+
+    return expression;
+
+Return statements are only allowed inside function definitions, (see below).
+
+## Function definitions have the form:
+
+    def func(param1, param2) Compound-statement
+
+There may be any number of parameters.  Recursion is not fully supported.
+(There are no stack frames during evaluation.)
+
+### Function example
+
+    def fac(n) {
+        var result;
+        result := 1;
+        loop while (n > 1) {
+            result := result * n;
+            n := n - 1;
+        }
+    }
+
+    var x;
+    x := fac(4);
+
+Function "fac(n)" computes the factorial of "n".  In this case the factorial
+of 4, (24), should be assigned to variable "x".
 
 # Example usage
 
-    calc 'a := 5 * 2; b := a + 4;'
+    calc file.calc
+
+Where the contents of "file.calc" are:
+
+a := 5 * 2;
+b := a + 4;
 
 The two statements will be parsed, and the resulting parse tree will be printed out to a file named: "calc-parse.dot" in GraphViz "dot" notation.
 Then, semantic analysis will be performed, to create an AST from the resulting parse tree.
@@ -82,7 +117,7 @@ Variable 'a' will be assigned the value 10, and variable 'b' will be assigned th
 
 Thus the output, (combined std::cout and std::cerr) of the above command-line looks like this:
 
-    $ calc 'a := 5 * 2; b := a + 4;'
+    $ calc file.calc
     Parse successful.
     Result: a = 10
     Result: b = 14
@@ -111,9 +146,10 @@ The following operators are understood:
 * "and then", short circuiting logical and if the left side is 0, the right side is not evaluated.
 * "or else", short circuiting logical or.  If the left side is non-zero, the right side is not evaluated.
 
-# Intrinsic funcitons
+# Intrinsic functions
 
 There are two intrinsic functions, "abs", and "sgn".
 
 * abs(n), return the absolute value of the argument.
 * sgn(n), return the sign of the argument.  (-1, 0, or 1, if the argument is negative, zero, or positive, respectively).
+
