@@ -133,10 +133,11 @@ void
 semantic_analysis::pre_visit(node &n, exit_statement &)
 {
     if (loops_ == 0u) {
+        /// @todo Write error handler that will report position of the error.
         std::cerr << "Error: Exit statement is only allowed inside loop bodies."
                   << std::endl;
-        /// @todo Signal an error to prevent evaluation of the resulting
-        /// tree.  Perhaps introduce an error node as well.
+        n.set_type<error>();
+        n.set_kind(error{ });
     }
 }
 
@@ -144,9 +145,10 @@ void
 semantic_analysis::pre_visit(node &n, return_statement &)
 {
     if (funcs_ == 0u) {
+        /// @todo Write error handler that will report position of the error.
         std::cerr << "Error: Return statement is only allowed inside function bodies." << std::endl;
-        /// @todo Signal an error to prevent evaluation of the resulting tree.
-        /// Perhaps introduce an error node as well.
+        n.set_type<error>();
+        n.set_kind(error{ });
     }
 }
 

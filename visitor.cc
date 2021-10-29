@@ -60,12 +60,12 @@ node_visitor::post_visit(node &, std::monostate &)
 }
 
 void
-node_visitor::pre_visit(node &, node_kind_last &)
+node_visitor::pre_visit(node &, error &)
 {
 }
 
 void
-node_visitor::post_visit(node &, node_kind_last &)
+node_visitor::post_visit(node &, error &)
 {
 }
 

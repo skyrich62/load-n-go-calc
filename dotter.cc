@@ -45,6 +45,8 @@ public:
     dot_visitor& operator=(const dot_visitor &) = delete;
     void print_node(node &n);
 
+    void pre_visit(node &, error&) override;
+
 #define xx(a, b) void pre_visit(node &n, a &) override;
 #include "node_kind.def"
 
@@ -167,6 +169,13 @@ dot_visitor::print_node(node &n)
         os_ << "\\n" << name;
     }
     os_ << "\" ]\n";
+}
+
+void
+dot_visitor::pre_visit(node &n, error &)
+{
+    print_node(n);
+    print_links(n, "children");
 }
 
 void

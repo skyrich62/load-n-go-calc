@@ -113,7 +113,7 @@ struct function_base : public parent
 struct function_call_base : public operation, public symbol_ref { };
 
 /// Used as a sentinel to end the list of variants.
-struct node_kind_last { };
+struct error { };
 
 #define xx(a, b) struct a : public b { };
 #include "node_kind.def"
@@ -125,7 +125,7 @@ using node_kind =
         std::monostate,       ///< Not classified yet.
 #define xx(a, b) a,
 #include "node_kind.def"
-        node_kind_last
+        error                 ///< Must be last node.
     >;
 
 /// Parse tree node is the same as a PEGTL basic node, but adds

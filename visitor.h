@@ -55,8 +55,8 @@ public:
     virtual void pre_visit(Node::node &, std::monostate &);
     virtual void post_visit(Node::node &, std::monostate &);
 
-    void pre_visit(Node::node &, Node::node_kind_last &);
-    void post_visit(Node::node &, Node::node_kind_last &);
+    virtual void pre_visit(Node::node &, Node::error &);
+    virtual void post_visit(Node::node &, Node::error &);
 
 #define xx(a, b) virtual void pre_visit(Node::node &, Node::a &);
 #include "node_kind.def"
