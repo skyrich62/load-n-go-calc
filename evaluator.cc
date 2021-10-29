@@ -56,13 +56,7 @@ evaluator::pre_visit(node &n, root &)
     for (const auto &child : c) {
         // catch misplaced exit or return statements... This should be caught
         // during semantic analysis, but that's for another patch.
-        try {
-            this->accept(*child);
-        } catch (const loop_exiting &) {
-            //std::cerr << "Exit statement outside of loop." << std::endl;
-        } catch (const function_returning &) {
-            //std::cerr << "Return statement outside of function." << std::endl;
-        }
+        this->accept(*child);
     }
 }
 
