@@ -149,6 +149,7 @@ semantic_analysis::pre_visit(node &n, return_statement &)
         std::cerr << "Error: Return statement is only allowed inside function bodies." << std::endl;
         n.set_type<error>();
         n.set_kind(error{ });
+        n.children.clear();
     }
 }
 
