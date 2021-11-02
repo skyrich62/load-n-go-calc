@@ -183,6 +183,8 @@ void
 semantic_analysis::pre_visit(node &n, compound_statement &c)
 {
     push_scope(n, c);
+    auto &s = stack_.top();
+    s->name(c.name_);
 }
 
 void

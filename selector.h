@@ -210,6 +210,26 @@ struct rewrite_top_test_loop:
     }
 };
 
+struct handle_compound_statement :
+    parse_tree::apply< handle_compound_statement >
+{
+    template <typename ... States >
+    static void transform( Ptr &n, States&&... st)
+    {
+        n->set_type<Node::compound_statement>();
+        n->set_kind(Node::compound_statement{});
+        n->remove_content();
+        if (n->children.size() == 0) {
+            return;
+        }
+        auto &child = n->children[0];
+        if (child->is_type<block_id>()) {
+            n->get_kind<Node::compound_statement>()->set_name(child->string());
+            n->children.erase(n->children.begin());
+        }
+    }
+};
+
 /// Used to select which nodes are created.
 template <typename Rule>
 using selector = parse_tree::selector<
@@ -225,6 +245,12 @@ using selector = parse_tree::selector<
   /// for symbol_name, create a symbol node.
   store_symbol::on< symbol_name >,
 
+  /// for block_id, save the name.
+  parse_tree::store_content::on< block_id >,
+
+  /// Special handling for compound statements
+  handle_compound_statement::on< compound_statement >,
+
   /// Remove the content and classify the nodes for these.
   assign_node_type::on<
     function_definition,
@@ -234,7 +260,6 @@ using selector = parse_tree::selector<
     exit_statement,
     return_statement,
     expression_statement,
-    compound_statement,
     addition,
     subtraction,
     multiplication,

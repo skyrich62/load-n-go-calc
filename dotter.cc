@@ -156,6 +156,11 @@ dot_visitor::print_node(node &n)
         std::ostringstream os;
         os << num->value_;
         name = os.str();
+    } else if (auto c = n.get_kind<compound_statement>(); c) {
+        if (!c->name_.empty()) {
+            name = "Id: ";
+            name += c->name_;
+        }
     }
     os_ << "  x" << &n
         << " [color=" << decorator.get_color()

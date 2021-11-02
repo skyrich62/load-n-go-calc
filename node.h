@@ -61,7 +61,11 @@ struct operation { };
 struct statement { };
 
 /// A parent statement, (used for compound statements).
-struct parent_stmt : public parent, public statement { };
+struct parent_stmt : public parent, public statement
+{
+    std::string name_;
+    void set_name(const std::string &name)       { name_ = name; }
+};
 
 /// A variable/symbol name node.
 struct symbol_name {
