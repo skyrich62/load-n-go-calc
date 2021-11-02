@@ -94,6 +94,11 @@ evaluator::pre_visit(node &n, loop_top_test_statement &)
         try {
             accept(body);
         } catch (const loop_exiting &e) {
+            auto b = body.get_kind<compound_statement>();
+            cbi::CheckPoint::expect(CBI_HERE, b, "Must be compound statement");
+            if (!e.name_.empty() && e.name_ != b->name_) {
+                throw;
+            }
             return;
         }
     }
@@ -108,6 +113,11 @@ evaluator::pre_visit(node &n, loop_bottom_test_statement &)
         try {
             accept(body);
         } catch (const loop_exiting &e) {
+            auto b = body.get_kind<compound_statement>();
+            cbi::CheckPoint::expect(CBI_HERE, b, "Must be compound statement");
+            if (!e.name_.empty() && e.name_ != b->name_) {
+                throw;
+            }
             return;
         }
         accept(cond);
@@ -132,16 +142,16 @@ evaluator::pre_visit(node &n, if_statement &)
 }
 
 void
-evaluator::pre_visit(node &n, exit_statement &)
+evaluator::pre_visit(node &n, exit_statement &es)
 {
     if (n.children.size() == 1) {
         auto &cond = *n.children[0];
         accept(cond);
         if (result_) {
-            throw loop_exiting{};
+            throw loop_exiting{es.name_};
         }
     } else {
-        throw loop_exiting{};
+        throw loop_exiting{es.name_};
     }
 }
 

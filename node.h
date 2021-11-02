@@ -60,17 +60,18 @@ struct operation { };
 /// A statement of some kind.
 struct statement { };
 
-/// A parent statement, (used for compound statements).
-struct parent_stmt : public parent, public statement
-{
+/// A node that has some kind of symbol/identifier attached.
+struct symbol_name {
     std::string name_;
     void set_name(const std::string &name)       { name_ = name; }
 };
 
-/// A variable/symbol name node.
-struct symbol_name {
-    std::string name_;
-};
+/// Exit statements may have an attached identifier. (To terminate an
+/// outer loop as well as an inner one.)
+struct exit_statement_base : public symbol_name { };
+
+/// A parent statement, (used for compound statements).
+struct parent_stmt : public parent, public statement, public symbol_name { };
 
 /// A scope node
 struct scope_base {

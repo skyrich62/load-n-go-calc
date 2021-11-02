@@ -298,7 +298,7 @@ struct decl_statement : seq< VAR, wsp, symbol_name, wss, SEMI > { };
 
 /// exit_statement <- EXIT (IF expression)? ';'
 struct exit_statement :
-    seq< EXIT, opt< wsp, IF, wsp, expression >, wss, SEMI> { };
+    seq< EXIT, opt< wsp, block_id>, opt< wsp, IF, wsp, expression >, wss, SEMI> { };
 
 /// return_statement <- RETURN expression ';'
 struct return_statement :

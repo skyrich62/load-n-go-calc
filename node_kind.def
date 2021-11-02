@@ -30,7 +30,7 @@
 xx (number, value )
 xx (variable_ref, symbol_ref )
 xx (compound_statement, parent_stmt )
-xx (exit_statement, statement)
+xx (exit_statement, exit_statement_base)
 xx (return_statement, statement)
 xx (root, parent)
 xx (scope, scope_base)

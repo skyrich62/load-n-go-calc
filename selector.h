@@ -210,23 +210,39 @@ struct rewrite_top_test_loop:
     }
 };
 
+template <typename Kind>
+void handle_compound_and_exit_node_name(Ptr &n)
+{
+    n->set_type<Kind>();
+    n->set_kind(Kind{});
+    n->remove_content();
+    if (n->children.size() == 0) {
+        return;
+    }
+    auto &child = n->children[0];
+    if (child->is_type<block_id>()) {
+        n->get_kind<Kind>()->set_name(child->string());
+        n->children.erase(n->children.begin());
+    }
+}
+
 struct handle_compound_statement :
     parse_tree::apply< handle_compound_statement >
 {
     template <typename ... States >
     static void transform( Ptr &n, States&&... st)
     {
-        n->set_type<Node::compound_statement>();
-        n->set_kind(Node::compound_statement{});
-        n->remove_content();
-        if (n->children.size() == 0) {
-            return;
-        }
-        auto &child = n->children[0];
-        if (child->is_type<block_id>()) {
-            n->get_kind<Node::compound_statement>()->set_name(child->string());
-            n->children.erase(n->children.begin());
-        }
+        handle_compound_and_exit_node_name<Node::compound_statement>(n);
+    }
+};
+
+struct handle_exit_statement :
+    parse_tree::apply< handle_exit_statement >
+{
+    template <typename ... States >
+    static void transform( Ptr &n, States&&... st)
+    {
+        handle_compound_and_exit_node_name<Node::exit_statement>(n);
     }
 };
 
@@ -251,13 +267,15 @@ using selector = parse_tree::selector<
   /// Special handling for compound statements
   handle_compound_statement::on< compound_statement >,
 
+  /// Special handling for exit statements
+  handle_exit_statement::on< exit_statement >,
+
   /// Remove the content and classify the nodes for these.
   assign_node_type::on<
     function_definition,
     decl_statement,
     if_statement,
     assignment_statement,
-    exit_statement,
     return_statement,
     expression_statement,
     addition,

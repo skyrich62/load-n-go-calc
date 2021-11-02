@@ -60,7 +60,12 @@ private:
 
 private:
     struct function_returning { };
-    struct loop_exiting { };
+    struct loop_exiting
+    {
+        std::string name_;
+        loop_exiting() = default;
+        loop_exiting(const std::string &name) : name_(name) { }
+    };
 };
 } // namespace Calc
 

@@ -161,6 +161,11 @@ dot_visitor::print_node(node &n)
             name = "Id: ";
             name += c->name_;
         }
+    } else if (auto c = n.get_kind<exit_statement>(); c) {
+        if (!c->name_.empty()) {
+            name = "Target: ";
+            name += c->name_;
+        }
     }
     os_ << "  x" << &n
         << " [color=" << decorator.get_color()
