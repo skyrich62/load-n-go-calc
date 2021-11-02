@@ -13,7 +13,7 @@ statements, assignment statements, if-statements, block statements,
 declaration statements, loop statements, exit statements, return statements,
 function definition statements, or expression statements.
 
-Only integer types, (c++ "int") are understood for now.  
+Only integer types, (c++ "int") are understood for now.
 # Statements
 
 ## Assignment-statements have the form:
@@ -56,25 +56,51 @@ In all cases, the expression to evaluate must be enclosed in parentheses.
 
 ## Exit-statements have the form:
 
-    exit;
-    exit if expression;
+    exit target;
+    exit target if expression;
 
+The "target" is optional.  If it is there, it must be an identifier which names a Compound-statement of Loop-statement.  This is useful in nested loops.
 
- If there is an "if" clause, and it's expression evaluates to a non-zero value, then the immediately enclosing loop will be terminated.
- If there is no "if" clause, then the immediately enclosing loop will be terminated.
- Exit-statements are only allowed inside the body of a loop statement.  An error message will be put out otherwise.
+### Example
+
+    loop while (1)
+        outer: {
+            x := x + 1;
+            inner: {
+                exit outer if (x > 5);
+            }
+        }
+
+   * If there is an "if" clause, and it's expression evaluates to a non-zero
+     value, then the immediately enclosing loop will be terminated, if there
+     is no "target" clause, otherwise the named "target" loop will be
+     terminated and all enclosed loops as well.
+   * If there is no "if" clause, then the immediately enclosing loop will be
+     terminated, if there is no "target" clause.  If there is a "target"
+     clause, then the named loop and all enclosed loops will be terminated.
+
+Exit-statements are only allowed inside the body of a loop statement.
+An error message will be put out otherwise.
 
 ## Compound-statements have the form:
 
     { statement; statement; statement; ... }
 
 
-Variables defined inside a compound statement have scope only within the compound statement.  A variable may be explicitly defined inside a compound statement which has the same name/identifier as one in a surrounding scope.  This effectively hides the outer scope variable while inside the compound statement.
-Compound statements can optionally have a name.  The name is parsed, but it currently is not put into the resulting parse tree.  This is for future use.
+Variables defined inside a compound statement have scope only within the
+compound statement.  A variable may be explicitly defined inside a compound
+statement which has the same name/identifier as one in a surrounding scope.
+This effectively hides the outer scope variable while inside the compound
+statement.
+
+Compound statements can optionally have a name.
 
     xyzzy: {statement; statement; ... }
 
-Here, "xyzzy" is the compound statement name.  In the future, a scope operator will be introduced which will allow access to hidden variable names by explictly designating the scope.
+Here, "xyzzy" is the compound statement name.  In the future, a scope
+operator will be introduced which will allow access to hidden variable names
+by explictly designating the scope.  Named compound statements are currently
+useful with Exit-statements to allow terminating an enclosing loop.
 
 ## Return statements have the form:
 
