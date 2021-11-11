@@ -79,6 +79,8 @@ public:
 
     auto& parent()                          { return parent_; }
     auto& parent_node()                     { return parent_node_; }
+    auto  previous() const                  { return previous_; }
+    const auto& name() const                { return name_; }
 private:
 
     /// The symbol table for this scope.

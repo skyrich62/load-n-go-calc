@@ -15,7 +15,8 @@ INCS = \
     grammar.h \
     node.h \
     is_valid.h \
-    overloaded.h
+    overloaded.h \
+    error.h
 
 OBJS = \
     main.o \

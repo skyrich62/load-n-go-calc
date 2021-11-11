@@ -24,6 +24,7 @@
  */
 
 #include "semantic_analysis.h"
+#include "error.h"
 #include <iostream>
 #include <set>
 
@@ -35,7 +36,7 @@ namespace cbi = CompuBrite;
 using namespace Calc::Node;
 
 void
-checkKeyword(const std::string &name)
+checkKeyword(const node &n, const std::string &name)
 {
     static std::set<std::string> keywords{
         "if", "else", "and", "then", "or", "and", "var", "def", "exit",
@@ -43,8 +44,7 @@ checkKeyword(const std::string &name)
     };
 
     if (auto found = keywords.find(name); found != keywords.end())  {
-        std::cerr << "Warning: keyword '" << name << "' used as symbol_name."
-                  << std::endl;
+        error_msg(n, "Warning: keyword '", name, "' used as symbol_name.");
     }
 }
 
@@ -130,15 +130,30 @@ semantic_analysis::post_visit(node &n, loop_bottom_test_statement &)
 }
 
 void
-semantic_analysis::pre_visit(node &n, exit_statement &)
+semantic_analysis::pre_visit(node &n, exit_statement &es)
 {
     if (loops_ == 0u) {
         /// @todo Write error handler that will report position of the error.
-        std::cerr << "Error: Exit statement is only allowed inside loop bodies."
-                  << std::endl;
-        n.set_type<error>();
-        n.set_kind(error{ });
+        error_msg(n, "Exit statement is only allowed inside loop bodies.");
+        return;
     }
+    // We're in a loop.  Is this a named exit statement, and does it refer
+    // to an active loop?
+    if (es.name_.empty()) {
+        // Unnamed exit statement.  OK.
+        return;
+    }
+    for (auto scope = symbol_scope::current();
+         scope;
+         scope = scope->previous()) {
+        if (scope->name() == es.name_) {
+            // Found a match -- OK
+            // @todo hook up the nodes.
+            return;
+        }
+    }
+    error_msg(n, "Exit statement label not found.");
+    return;
 }
 
 void
@@ -146,9 +161,7 @@ semantic_analysis::pre_visit(node &n, return_statement &)
 {
     if (funcs_ == 0u) {
         /// @todo Write error handler that will report position of the error.
-        std::cerr << "Error: Return statement is only allowed inside function bodies." << std::endl;
-        n.set_type<error>();
-        n.set_kind(error{ });
+        error_msg(n, "Return statement only allowed inside function bodies.");
         n.children.clear();
     }
 }
@@ -164,7 +177,7 @@ semantic_analysis::pre_visit(node &n, function_call &fc)
     auto fnode = std::move(n.children[0]);
     n.children.erase(n.children.begin());
     auto &name = fnode->get_kind<variable>()->name_;
-    checkKeyword(name);
+    checkKeyword(n, name);
     auto r = symbol_scope::lookup(name);
     fc.symbol_ = r;
 }
@@ -175,7 +188,7 @@ semantic_analysis::pre_visit(node &n, declaration &)
     traversal_->disableSubTree();
     auto &child = n.children[0];
     auto &var = child->get_kind<variable>()->name_;
-    checkKeyword(var);
+    checkKeyword(n, var);
     symbol_scope::add(var, *child);
 }
 
@@ -247,7 +260,7 @@ void
 semantic_analysis::pre_visit(node &n, variable &)
 {
     auto &name = n.get_kind<variable>()->name_;
-    checkKeyword(name);
+    checkKeyword(n, name);
     auto r = symbol_scope::lookup(name);
     n.set_kind(variable_ref{r});
     n.set_type<variable_ref>();

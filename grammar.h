@@ -217,10 +217,11 @@ struct keywords:
 struct logical_operator : sor< AND_THEN, OR_ELSE, OR, AND > { };
 
 /// non_kw_ident <- !keywords  identifier
+//.
 struct non_kw_ident : seq< not_at< keywords >, identifier > { };
 
 /// symbol_name <- non_kw_ident
-struct symbol_name : seq< non_kw_ident > { };
+struct symbol_name : seq< identifier > { };
 
 /// block_id <- non_kw_ident
 struct block_id : seq< non_kw_ident > { };
